@@ -24,6 +24,6 @@
 - [x] **User Directive Received**: Scope explicitly capped at Milestone 3 (M3). Milestones M4 (Anti-Collapse Loop) and M5 (Deliverable Generator) held in abeyance.
 
 ## Next Action Items
-1. Finalize verification of Milestones M1, M2, and M3.
-2. Ensure test coverage and zero-egress kernel audit scripts pass for M1–M3 modules.
+1. Push branch `main` to `https://github.com/VINYASGM/smitrace.git` upon credential refresh (`gh auth login`).
+2. Maintain verification suite (148/148 tests passing) for Milestones M1, M2, and M3.
 
