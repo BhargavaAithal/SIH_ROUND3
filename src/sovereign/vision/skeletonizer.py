@@ -37,7 +37,7 @@ def binarize_engineering_drawing(
     invert: bool = True
 ) -> np.ndarray:
     """Standardize drawing to white foreground (255) on black background (0)."""
-    if img is None or img.size == 0:
+    if img is None or not isinstance(img, np.ndarray) or img.size == 0 or len(img.shape) < 2 or 0 in img.shape:
         raise ValueError("Empty or invalid image array")
 
     if len(img.shape) == 3:
@@ -98,6 +98,7 @@ def _zhang_suen_thinning(binary_image: np.ndarray) -> np.ndarray:
         p9 = np.roll(np.roll(im, -1, axis=0), -1, axis=1)
 
         n_neighbors = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
+
         transitions = (
             ((p2 == 0) & (p3 == 1)).astype(int) +
             ((p3 == 0) & (p4 == 1)).astype(int) +
@@ -128,6 +129,7 @@ def _zhang_suen_thinning(binary_image: np.ndarray) -> np.ndarray:
         p9 = np.roll(np.roll(im, -1, axis=0), -1, axis=1)
 
         n_neighbors = p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9
+
         transitions = (
             ((p2 == 0) & (p3 == 1)).astype(int) +
             ((p3 == 0) & (p4 == 1)).astype(int) +
@@ -206,18 +208,23 @@ def skeletonize_lines(image_or_patch, method: str = "auto") -> np.ndarray:
 
 
 def compute_crossing_number(bin_skel: np.ndarray) -> np.ndarray:
-    """Compute Rutovitz crossing number for 8-neighborhood.
-    CN = 0.5 * sum(|p_{i} - p_{i+1}|) for 8 neighbors around each pixel.
+    """Compute Rutovitz crossing number for 8-neighborhood safely without edge wrap-around.
+    CN = 0.5 * sum(|p_{i} - p_{i+1}|) for 8 neighbors in clockwise order around each pixel.
     """
     im = (bin_skel > 0).astype(np.uint8)
-    p2 = np.roll(im, -1, axis=0)
-    p3 = np.roll(np.roll(im, -1, axis=0), 1, axis=1)
-    p4 = np.roll(im, 1, axis=1)
-    p5 = np.roll(np.roll(im, 1, axis=0), 1, axis=1)
-    p6 = np.roll(im, 1, axis=0)
-    p7 = np.roll(np.roll(im, 1, axis=0), -1, axis=1)
-    p8 = np.roll(im, -1, axis=1)
-    p9 = np.roll(np.roll(im, -1, axis=0), -1, axis=1)
+    padded = np.pad(im, 1, mode='constant', constant_values=0)
+
+    # Clockwise 8-neighbors around pixel (y, x):
+    # p2: Top, p3: Top-Right, p4: Right, p5: Bottom-Right,
+    # p6: Bottom, p7: Bottom-Left, p8: Left, p9: Top-Left
+    p2 = padded[0:-2, 1:-1]
+    p3 = padded[0:-2, 2:]
+    p4 = padded[1:-1, 2:]
+    p5 = padded[2:,   2:]
+    p6 = padded[2:,   1:-1]
+    p7 = padded[2:,   0:-2]
+    p8 = padded[1:-1, 0:-2]
+    p9 = padded[0:-2, 0:-2]
 
     neighbors = [p2, p3, p4, p5, p6, p7, p8, p9, p2]
     diff_sum = np.zeros_like(im, dtype=np.float32)
@@ -271,14 +278,14 @@ def _rdp_pure_numpy(points: List[Tuple[int, int]], epsilon: float = 2.0) -> List
     p1 = np.array(points[0])
     p2 = np.array(points[-1])
     line_vec = p2 - p1
-    line_len = np.linalg.norm(line_vec)
+    line_len = float(np.linalg.norm(line_vec))
 
     for i in range(1, len(points) - 1):
         p = np.array(points[i])
         if line_len == 0:
-            d = np.linalg.norm(p - p1)
+            d = float(np.linalg.norm(p - p1))
         else:
-            d = abs(line_vec[0] * (p1[1] - p[1]) - line_vec[1] * (p1[0] - p[0])) / line_len
+            d = float(abs(line_vec[0] * (p1[1] - p[1]) - line_vec[1] * (p1[0] - p[0]))) / line_len
         if d > dmax:
             index = i
             dmax = d
