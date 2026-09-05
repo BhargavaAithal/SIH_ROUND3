@@ -1,0 +1,13 @@
+{
+  "unit": "Crude Distillation Unit (CDU-1)",
+  "equipment": [
+    {"tag": "V-101", "type": "vessel", "desc": "Desalter Drum"},
+    {"tag": "P-101A", "type": "pump", "desc": "Crude Charge Pump A (Operating)"},
+    {"tag": "P-101B", "type": "pump", "desc": "Crude Charge Pump B (Standby)"},
+    {"tag": "E-101A", "type": "heat_exchanger", "desc": "Preheat Exchanger Train A"},
+    {"tag": "E-101B", "type": "heat_exchanger", "desc": "Preheat Exchanger Train B"},
+    {"tag": "F-101", "type": "furnace", "desc": "Atmospheric Pipestill Furnace"},
+    {"tag": "C-101", "type": "column", "desc": "Atmospheric Distillation Column"},
+    {"tag": "ESDV-101", "type": "valve", "desc": "Emergency Shutdown Valve"}
+  ]
+}

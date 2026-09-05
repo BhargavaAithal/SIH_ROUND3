@@ -1,0 +1,35 @@
+{
+  "project_id": "IOCL-PL-2026-BLK4",
+  "facility": "Panipat-Jalandhar Refined Products Pipeline",
+  "pipeline_section": "Chainage KM 0.0 to KM 45.0",
+  "design_standard": "ASME B31.3 Process Piping / ASME B31.4 Pipeline Transportation",
+  "fluid_service": "Motor Spirit (MS) & High Speed Diesel (HSD)",
+  "pipe_specification": {
+    "material": "API 5L Grade B Seamless",
+    "nominal_diameter_nps": "16 inch",
+    "outside_diameter_in": 16.0,
+    "nominal_thickness_in": 0.375,
+    "design_pressure_psig": 400.0,
+    "design_temperature_degf": 120.0,
+    "allowable_stress_psi": 20000.0,
+    "joint_efficiency_E": 1.0,
+    "temperature_coefficient_Y": 0.4,
+    "corrosion_allowance_in": 0.0625
+  },
+  "inspection_records": [
+    {
+      "point_id": "UT-PT-01",
+      "location": "KM 14.2 (Standard Trench)",
+      "measured_thickness_in": 0.32,
+      "corrosion_observed_mpy": 2.1,
+      "expected_verdict": "SAT"
+    },
+    {
+      "point_id": "UT-PT-02",
+      "location": "KM 28.7 (River Bed Crossing)",
+      "measured_thickness_in": 0.21,
+      "corrosion_observed_mpy": 7.4,
+      "expected_verdict": "UNSAT"
+    }
+  ]
+}
