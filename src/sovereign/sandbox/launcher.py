@@ -46,12 +46,30 @@ class SandboxResult:
     """
     Standard execution result returned by run_sandboxed.
     """
-    stdout: str
-    stderr: str
-    returncode: int
-    execution_time_sec: float
-    memory_peak_mb: float
+    stdout: str = ""
+    stderr: str = ""
+    returncode: int = 0
+    execution_time_sec: float = 0.0
+    memory_peak_mb: float = 0.0
     network_egress_bytes: int = 0
+
+    def __init__(
+        self,
+        stdout: str = "",
+        stderr: str = "",
+        returncode: int = 0,
+        execution_time_sec: float = 0.0,
+        memory_peak_mb: float = 0.0,
+        network_egress_bytes: int = 0,
+        duration_sec: Optional[float] = None,
+        **kwargs: Any,
+    ):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.returncode = returncode
+        self.execution_time_sec = duration_sec if duration_sec is not None else execution_time_sec
+        self.memory_peak_mb = memory_peak_mb
+        self.network_egress_bytes = network_egress_bytes
 
     @property
     def success(self) -> bool:
@@ -634,7 +652,7 @@ def _run_fallback(
             guard_dir=temp_dir if not network else None
         )
 
-        work_dir = str(cwd) if cwd else temp_dir
+        work_dir = str(cwd) if cwd else os.getcwd()
 
         if sys.platform.startswith("linux") and resource is not None:
             limit_bytes = int(memory_limit_mb * 1024 * 1024)

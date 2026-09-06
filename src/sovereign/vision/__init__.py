@@ -48,6 +48,7 @@ from sovereign.vision.graph_builder import (
     PIDGraphBuilder,
     extract_topology,
     find_piping_path,
+    get_pipe_attributes,
     get_valves_on_line,
     trace_downstream,
 )
@@ -99,6 +100,7 @@ __all__ = [
     "PIDGraphBuilder",
     "extract_topology",
     "find_piping_path",
+    "get_pipe_attributes",
     "get_valves_on_line",
     "trace_downstream",
     # Synthetic Generator

@@ -31,9 +31,21 @@ def main() -> int:
     verify_parser.add_argument("-c", "--corrosion", type=float, default=3.0, help="Corrosion allowance")
     verify_parser.add_argument("-t", "--thickness", type=float, required=True, help="Actual measured thickness")
 
+    # Serve command
+    serve_parser = subparsers.add_parser("serve", help="Launch air-gapped FastAPI server and workbench SPA")
+    serve_parser.add_argument("--host", default="127.0.0.1", help="Bind host (default: 127.0.0.1)")
+    serve_parser.add_argument("--port", type=int, default=8000, help="Bind port (default: 8000)")
+    serve_parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
+
     args = parser.parse_args()
 
-    if args.command == "audit":
+    if args.command == "serve":
+        import uvicorn
+        print(f"Starting SMITRACE Sovereign AI Execution Plane on http://{args.host}:{args.port}")
+        uvicorn.run("sovereign.api.server:app", host=args.host, port=args.port, reload=args.reload)
+        return 0
+
+    elif args.command == "audit":
         verdict = audit_network_egress(args.log)
         print(f"Air-Gap Status: {verdict.status}")
         print(f"Packets Captured: {verdict.packets_captured}")

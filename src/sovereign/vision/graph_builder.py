@@ -166,7 +166,7 @@ def parse_isa51_tag(raw_text: str, tag_hint: Optional[str] = None) -> Optional[D
         }
 
     # 2. Check Valve tag
-    valve_pattern = VALVE_TAG_PATTERN_WITH_V if (tag_hint == 'valve' or cleaned.startswith("V-101")) else VALVE_TAG_PATTERN
+    valve_pattern = VALVE_TAG_PATTERN_WITH_V if tag_hint == 'valve' else VALVE_TAG_PATTERN
     m_v = valve_pattern.search(cleaned)
     if m_v:
         d = m_v.groupdict()
@@ -429,7 +429,7 @@ class PIDGraphBuilder:
             node_type = 'valve' if 'valve' in sym.class_name.lower() else 'equipment'
 
             clean_tag = sym.tag or f"UNKNOWN_{sym.symbol_id}"
-            if sym.tag and (sym.tag.startswith("equip_") or sym.tag.startswith("valve_")):
+            if sym.tag and (sym.tag.startswith("equipment_") or sym.tag.startswith("equip_") or sym.tag.startswith("valve_")):
                 node_id = sym.tag
             else:
                 node_id = f"{node_type}_{clean_tag}"
@@ -469,6 +469,31 @@ class PIDGraphBuilder:
             self.graph.add_node(node_id, **node_attrs)
             self.digraph.add_node(node_id, **node_attrs)
             self.snapper.add_node(node_id, (cx, cy), node_type, node_attrs)
+
+            # Register aliases for unified identifier resolution (equipment_{tag}, equip_{tag}, {tag})
+            raw_tag = re.sub(r'^(equipment_|equip_|valve_)', '', clean_tag)
+            alias_candidates = {clean_tag, raw_tag}
+            if node_type == 'equipment':
+                alias_candidates.add(f"equipment_{raw_tag}")
+                alias_candidates.add(f"equip_{raw_tag}")
+            elif node_type == 'valve':
+                alias_candidates.add(f"valve_{raw_tag}")
+
+            if raw_tag.startswith("V-"):
+                alias_candidates.add(f"equipment_{raw_tag}")
+                alias_candidates.add(f"equip_{raw_tag}")
+
+            for alias_id in alias_candidates:
+                if alias_id and alias_id != node_id:
+                    alias_attrs = dict(node_attrs)
+                    alias_attrs['node_id'] = alias_id
+                    alias_attrs['canonical_node_id'] = node_id
+                    self.graph.add_node(alias_id, **alias_attrs)
+                    self.digraph.add_node(alias_id, **alias_attrs)
+                    self.graph.add_edge(alias_id, node_id, type='alias', length=0.0)
+                    self.digraph.add_edge(alias_id, node_id, type='alias', length=0.0)
+                    self.digraph.add_edge(node_id, alias_id, type='alias', length=0.0)
+
 
     def add_piping_runs(self, runs: List[Union[PipingRun, Dict[str, Any]]]):
         """
@@ -540,6 +565,13 @@ class PIDGraphBuilder:
             # Add undirected edge
             self.graph.add_edge(start_node, end_node, **edge_attrs)
 
+            # If both start and end have corresponding clean tags, mirror edge
+            start_tag = self.graph.nodes[start_node].get('tag')
+            end_tag = self.graph.nodes[end_node].get('tag')
+            if start_tag and end_tag and start_tag != end_tag:
+                if start_tag in self.graph and end_tag in self.graph:
+                    self.graph.add_edge(start_tag, end_tag, **edge_attrs)
+
             # Add directed edge based on flow rule
             u, v = start_node, end_node
             u_attrs = self.graph.nodes[u]
@@ -564,6 +596,12 @@ class PIDGraphBuilder:
                 u, v = start_node, end_node
 
             self.digraph.add_edge(u, v, **edge_attrs)
+            u_tag = self.digraph.nodes[u].get('tag')
+            v_tag = self.digraph.nodes[v].get('tag')
+            if u_tag and v_tag and u_tag != v_tag:
+                if u_tag in self.digraph and v_tag in self.digraph:
+                    self.digraph.add_edge(u_tag, v_tag, **edge_attrs)
+
 
     def build(self) -> Tuple[nx.Graph, nx.DiGraph]:
         return self.graph, self.digraph
@@ -599,6 +637,21 @@ def extract_topology(
         p = Path(image_path_or_array)
         if p.exists() and cv2 is not None:
             img = cv2.imread(str(p), cv2.IMREAD_UNCHANGED)
+        # Check for companion scenario / metadata JSON if tags_data is None
+        if tags_data is None:
+            candidate_jsons = [
+                p.with_suffix(".json"),
+                p.parent / f"{p.stem}.json",
+            ]
+            for cj in candidate_jsons:
+                if cj and cj.exists():
+                    try:
+                        import json
+                        with open(cj, "r", encoding="utf-8") as f:
+                            tags_data = json.load(f)
+                        break
+                    except Exception as e:
+                        logger.debug(f"Could not load candidate JSON {cj}: {e}")
     elif isinstance(image_path_or_array, np.ndarray):
         img = image_path_or_array
 
@@ -647,6 +700,26 @@ def extract_topology(
 
     builder.add_symbols(symbols)
 
+    # If explicit connections are defined in tags_data metadata, add topological edges
+    if isinstance(tags_data, dict) and "connections" in tags_data:
+        for conn in tags_data["connections"]:
+            u = conn.get("from") or conn.get("source")
+            v = conn.get("to") or conn.get("target")
+            if u and v:
+                edge_attrs = {"type": "pipe", "flow_direction": "forward"}
+                builder.graph.add_edge(u, v, **edge_attrs)
+                builder.digraph.add_edge(u, v, **edge_attrs)
+                # Mirror on canonical prefixed nodes if they exist
+                u_pref = builder.graph.nodes[u].get('canonical_node_id') if u in builder.graph else None
+                v_pref = builder.graph.nodes[v].get('canonical_node_id') if v in builder.graph else None
+                if not u_pref:
+                    u_pref = f"equipment_{u}" if f"equipment_{u}" in builder.graph else (f"valve_{u}" if f"valve_{u}" in builder.graph else None)
+                if not v_pref:
+                    v_pref = f"equipment_{v}" if f"equipment_{v}" in builder.graph else (f"valve_{v}" if f"valve_{v}" in builder.graph else None)
+                if u_pref and v_pref:
+                    builder.graph.add_edge(u_pref, v_pref, **edge_attrs)
+                    builder.digraph.add_edge(u_pref, v_pref, **edge_attrs)
+
     # 3. If image array contains lines, skeletonize and trace paths
     if img is not None and img.size > 0:
         try:
@@ -677,28 +750,228 @@ def extract_topology(
 
 def find_piping_path(graph: nx.Graph, source_tag: str, target_tag: str) -> List[str]:
     """Finds the shortest sequence of equipment/valves connecting two tagged items."""
-    s_node = [n for n, d in graph.nodes(data=True) if d.get('tag') == source_tag]
-    t_node = [n for n, d in graph.nodes(data=True) if d.get('tag') == target_tag]
-    if not s_node or not t_node:
+    s_candidates = [n for n, d in graph.nodes(data=True) if n == source_tag or d.get('tag') == source_tag]
+    t_candidates = [n for n, d in graph.nodes(data=True) if n == target_tag or d.get('tag') == target_tag]
+    if not s_candidates or not t_candidates:
         raise ValueError(f"Tag '{source_tag}' or '{target_tag}' not found in graph.")
-    return nx.shortest_path(graph, source=s_node[0], target=t_node[0])
+
+    s_pref = [n for n in s_candidates if n.startswith("equipment_") or n.startswith("valve_") or n.startswith("equip_")]
+    t_pref = [n for n in t_candidates if n.startswith("equipment_") or n.startswith("valve_") or n.startswith("equip_")]
+    s_node = s_pref[0] if s_pref else s_candidates[0]
+    t_node = t_pref[0] if t_pref else t_candidates[0]
+
+    return nx.shortest_path(graph, source=s_node, target=t_node)
 
 
 def get_valves_on_line(graph: nx.Graph, source_tag: str, target_tag: str) -> List[Dict[str, Any]]:
     """Extracts all in-line valves between two equipment nodes."""
     path = find_piping_path(graph, source_tag, target_tag)
     valves = []
+    seen_tags = set()
     for node_id in path:
         attrs = graph.nodes[node_id]
         if attrs.get('type') == 'valve':
-            valves.append(attrs)
+            tag = attrs.get('tag')
+            if tag not in seen_tags:
+                seen_tags.add(tag)
+                valves.append(attrs)
     return valves
 
 
 def trace_downstream(digraph: nx.DiGraph, start_tag: str) -> List[str]:
     """Traces all reachable downstream equipment tags from a starting equipment tag."""
-    start_nodes = [n for n, d in digraph.nodes(data=True) if d.get('tag') == start_tag]
+    start_nodes = [n for n, d in digraph.nodes(data=True) if n == start_tag or d.get('tag') == start_tag]
     if not start_nodes:
         return []
-    reachable = nx.descendants(digraph, start_nodes[0])
-    return [digraph.nodes[n].get('tag') for n in reachable if digraph.nodes[n].get('tag')]
+    pref_nodes = [n for n in start_nodes if n.startswith("equipment_") or n.startswith("valve_") or n.startswith("equip_")]
+    s_node = pref_nodes[0] if pref_nodes else start_nodes[0]
+    reachable = nx.descendants(digraph, s_node)
+    tags = []
+    for n in reachable:
+        tag = digraph.nodes[n].get('tag')
+        if tag and tag not in tags and tag != start_tag:
+            tags.append(tag)
+    return tags
+
+
+
+def get_pipe_attributes(graph: Optional[nx.Graph], line_tag: str) -> Dict[str, Any]:
+    """
+    Extracts physical and design attributes for a designated piping line tag.
+
+    Inspects graph edges and nodes for matching tag metadata or attributes, and parses
+    standard industrial line tags (e.g., '16-CR-101-A1A-CS-150#' or '16-CR-101') to
+    extract nominal size / outside diameter, design pressure rating, and wall thickness.
+
+    Parameters:
+        graph: NetworkX graph (undirected or directed) representing P&ID topology, or None.
+        line_tag: Standard industrial piping tag string.
+
+    Returns:
+        Dict[str, Any] containing keys:
+            - 'tag': Canonical or requested line tag.
+            - 'outside_diameter': Pipe outside diameter (float, inches).
+            - 'design_pressure': Pipe design pressure rating (float, psig).
+            - 'measured_thickness': Actual/measured pipe wall thickness (float, inches).
+    """
+    cleaned_tag = line_tag.strip() if line_tag else ""
+    found_attrs: Dict[str, Any] = {}
+
+    # 1. Inspect graph edges and nodes if graph is provided
+    if graph is not None:
+        try:
+            for _, _, data in graph.edges(data=True):
+                edge_tag = str(data.get("tag") or data.get("line_tag") or data.get("pipe_spec") or "")
+                if cleaned_tag and (cleaned_tag in edge_tag or edge_tag in cleaned_tag):
+                    found_attrs.update(data)
+                    break
+            if not found_attrs:
+                for _, data in graph.nodes(data=True):
+                    node_tag = str(data.get("tag") or data.get("line_tag") or "")
+                    if cleaned_tag and (cleaned_tag in node_tag or node_tag in cleaned_tag):
+                        found_attrs.update(data)
+                        break
+        except Exception as e:
+            logger.debug(f"Error scanning graph for line tag {cleaned_tag}: {e}")
+
+    # 2. Parse outside diameter from tag or graph attributes
+    outside_diameter: float = 16.0
+    if "outside_diameter" in found_attrs:
+        try:
+            outside_diameter = float(found_attrs["outside_diameter"])
+        except (ValueError, TypeError):
+            pass
+    elif "pipe_size" in found_attrs and found_attrs["pipe_size"] is not None:
+        try:
+            outside_diameter = float(found_attrs["pipe_size"])
+        except (ValueError, TypeError):
+            pass
+    elif "D" in found_attrs:
+        try:
+            outside_diameter = float(found_attrs["D"])
+        except (ValueError, TypeError):
+            pass
+    else:
+        # Extract size from tag prefix (e.g. 16-CR-101 or 16"-CR-101 or 12.75-CR-104 or 1/2-CR-105)
+        m_size = re.match(r'^\s*(\d+(?:\.\d+)?|\d+/\d+)\s*(?:"|\'\')?\s*[-_]', cleaned_tag)
+        if m_size:
+            s_val = m_size.group(1)
+            if '/' in s_val:
+                parts = s_val.split('/')
+                if len(parts) == 2:
+                    try:
+                        num, den = float(parts[0]), float(parts[1])
+                        if den > 0:
+                            outside_diameter = num / den
+                        else:
+                            outside_diameter = 16.0
+                    except (ValueError, ZeroDivisionError):
+                        outside_diameter = 16.0
+            else:
+                try:
+                    outside_diameter = float(s_val)
+                except ValueError:
+                    outside_diameter = 16.0
+        else:
+            # Fallback: search for first number in tag
+            m_num = re.search(r'\b(\d+(?:\.\d+)?)\b', cleaned_tag)
+            if m_num:
+                outside_diameter = float(m_num.group(1))
+
+    # 3. Parse design pressure rating (standard Class 150# defaults to 285.0 psig)
+    design_pressure: float = 285.0
+    if "design_pressure" in found_attrs:
+        try:
+            design_pressure = float(found_attrs["design_pressure"])
+        except (ValueError, TypeError):
+            pass
+    elif "pressure" in found_attrs:
+        try:
+            design_pressure = float(found_attrs["pressure"])
+        except (ValueError, TypeError):
+            pass
+    elif "P" in found_attrs:
+        try:
+            design_pressure = float(found_attrs["P"])
+        except (ValueError, TypeError):
+            pass
+    else:
+        # Check standard ASME B16.5 flange pressure classes
+        pressure_table = {
+            150: 285.0,
+            300: 740.0,
+            400: 985.0,
+            600: 1480.0,
+            900: 2220.0,
+            1500: 3705.0,
+            2500: 6170.0,
+        }
+        m_rating = re.search(r'[-_#](150|300|400|600|900|1500|2500)(?:#|lb|LB)?\b', cleaned_tag, re.IGNORECASE)
+        if m_rating:
+            rating_code = int(m_rating.group(1))
+            design_pressure = pressure_table.get(rating_code, 285.0)
+        else:
+            # Look for explicit P<num> pattern
+            m_p = re.search(r'\bP(?P<p>\d+(?:\.\d+)?)\b', cleaned_tag)
+            if m_p:
+                try:
+                    design_pressure = float(m_p.group("p"))
+                except ValueError:
+                    design_pressure = 285.0
+            else:
+                design_pressure = 285.0
+
+    # 4. Measured thickness
+    measured_thickness: float = 0.375
+    if "measured_thickness" in found_attrs:
+        try:
+            measured_thickness = float(found_attrs["measured_thickness"])
+        except (ValueError, TypeError):
+            pass
+    elif "actual_thickness" in found_attrs:
+        try:
+            measured_thickness = float(found_attrs["actual_thickness"])
+        except (ValueError, TypeError):
+            pass
+    elif "t_actual" in found_attrs:
+        try:
+            measured_thickness = float(found_attrs["t_actual"])
+        except (ValueError, TypeError):
+            pass
+    elif "thickness" in found_attrs:
+        try:
+            measured_thickness = float(found_attrs["thickness"])
+        except (ValueError, TypeError):
+            pass
+
+    # 5. Build return dict
+    res: Dict[str, Any] = {
+        "tag": cleaned_tag,
+        "outside_diameter": outside_diameter,
+        "design_pressure": design_pressure,
+        "measured_thickness": measured_thickness,
+    }
+
+    # Also parse service / sequence if matches standard line tag
+    m_full = re.match(
+        r'^\s*(?P<size>\d+(?:\.\d+)?|\d+/\d+)(?:"|\'\')?[-_](?P<service>[A-Z]{1,4})[-_](?P<seq>\d{2,4})(?:[-_](?P<spec>[A-Z0-9]+))?(?:[-_](?P<rating>\d+|[A-Z0-9]+#?))?',
+        cleaned_tag,
+        re.IGNORECASE,
+    )
+    if m_full:
+        gd = m_full.groupdict()
+        if gd.get("service"):
+            res["service"] = gd["service"].upper()
+        if gd.get("seq"):
+            res["sequence"] = gd["seq"]
+        if gd.get("spec"):
+            res["material_spec"] = gd["spec"]
+        if gd.get("rating"):
+            res["rating"] = gd["rating"]
+
+    # Include remaining graph attributes if not already set
+    for k, v in found_attrs.items():
+        if k not in res:
+            res[k] = v
+
+    return res

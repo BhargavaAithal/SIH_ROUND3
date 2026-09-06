@@ -7,6 +7,7 @@ between Immutable Spec, Mutable Script, and Failure Hashes.
 from dataclasses import dataclass, field
 import hashlib
 import json
+import os
 import sys
 from typing import Any, Callable, Dict, List, Optional
 
@@ -141,7 +142,7 @@ def run_react_loop(
             continue
 
         # 3. Sandbox Ephemeral Execution
-        exec_result = run_sandboxed([sys.executable, "-c", script], timeout_sec=5)
+        exec_result = run_sandboxed([sys.executable, "-c", script], timeout_sec=5, cwd=os.getcwd())
         last_exec_result = exec_result
 
         if exec_result.returncode != 0:

@@ -43,9 +43,23 @@ FORBIDDEN_MODULES: frozenset[str] = frozenset({
     # Dynamic Code, Compilation, Bytecode & Deserialization
     "importlib", "imp", "builtins", "__builtin__", "types", "inspect",
     "code", "codeop", "dis", "marshal", "pickle", "shelve", "dbm",
+    "sqlite3", "tempfile",
 
     # System & Interpreter Tampering
     "sys", "platform", "gc",
+})
+
+FORBIDDEN_FS_METHODS: frozenset[str] = frozenset({
+    "write_text",
+    "write_bytes",
+    "unlink",
+    "rmdir",
+    "rename",
+    "replace",
+    "mkdir",
+    "touch",
+    "chmod",
+    "lchmod",
 })
 
 FORBIDDEN_BUILTINS: frozenset[str] = frozenset({
@@ -143,22 +157,44 @@ class SecurityASTVisitor(ast.NodeVisitor):
                 self.violations.append(
                     f"Line {node.lineno}: Forbidden process execution call '{attr_name}()'"
                 )
+            elif attr_name in FORBIDDEN_FS_METHODS:
+                # If 'replace', allow only string literal replacements: "abc".replace(...)
+                if attr_name == "replace" and (isinstance(node.func.value, ast.Constant) and isinstance(node.func.value.value, str)):
+                    pass
+                else:
+                    self.violations.append(
+                        f"Line {node.lineno}: Forbidden filesystem modification call '{attr_name}()'"
+                    )
+            elif attr_name == "open":
+                self._check_open_call(node)
 
         self.generic_visit(node)
 
     def _check_open_call(self, node: ast.Call) -> None:
         mode_val: str | None = None
 
-        # Mode passed as 2nd positional argument
-        if len(node.args) >= 2:
-            mode_arg = node.args[1]
-            if isinstance(mode_arg, ast.Constant) and isinstance(mode_arg.value, str):
-                mode_val = mode_arg.value
-            else:
-                self.violations.append(
-                    f"Line {node.lineno}: Forbidden dynamic mode expression passed to open()"
-                )
-                return
+        # Mode position: for builtin open(file, mode), it is 2nd arg (index 1).
+        # For path.open(mode), it is 1st arg (index 0).
+        if isinstance(node.func, ast.Attribute):
+            if len(node.args) >= 1:
+                mode_arg = node.args[0]
+                if isinstance(mode_arg, ast.Constant) and isinstance(mode_arg.value, str):
+                    mode_val = mode_arg.value
+                else:
+                    self.violations.append(
+                        f"Line {node.lineno}: Forbidden dynamic mode expression passed to open()"
+                    )
+                    return
+        else:
+            if len(node.args) >= 2:
+                mode_arg = node.args[1]
+                if isinstance(mode_arg, ast.Constant) and isinstance(mode_arg.value, str):
+                    mode_val = mode_arg.value
+                else:
+                    self.violations.append(
+                        f"Line {node.lineno}: Forbidden dynamic mode expression passed to open()"
+                    )
+                    return
 
         # Mode passed as keyword argument 'mode'
         for kw in node.keywords:

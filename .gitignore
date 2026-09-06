@@ -59,6 +59,18 @@ venv.bak/
 .agents/*/
 !.agents/skills/
 
+# Node / Frontend
+node_modules/
+dist/
+.vite/
+
+# Rust / Cargo
+target/
+**/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+
 # OS / Editor artifacts
 .DS_Store
 Thumbs.db
@@ -66,3 +78,4 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+

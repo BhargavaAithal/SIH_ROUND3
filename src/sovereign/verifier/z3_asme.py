@@ -43,12 +43,20 @@ class Z3VerificationResult:
     @property
     def t_min(self) -> float:
         """Alias for backward compatibility with CLI and agents."""
-        return float(self.model_details.get("t_m", self.model_details.get("t_min", 0.0)))
+        val = self.model_details.get("t_m", self.model_details.get("t_min"))
+        try:
+            return float(val) if val is not None and math.isfinite(float(val)) else 0.0
+        except (ValueError, TypeError):
+            return 0.0
 
     @property
     def t_actual(self) -> float:
         """Alias for backward compatibility with CLI and agents."""
-        return float(self.model_details.get("t_actual", 0.0))
+        val = self.model_details.get("t_actual")
+        try:
+            return float(val) if val is not None and math.isfinite(float(val)) else 0.0
+        except (ValueError, TypeError):
+            return 0.0
 
     @property
     def invariant_passed(self) -> bool:
@@ -124,11 +132,17 @@ def verify_asme_b31_3(
             violations.append(f"Parameter '{name}' must be finite, got {val}")
 
     if violations:
+        safe_params = {
+            k: (float(v) if v is not None and isinstance(v, (int, float)) and math.isfinite(v) else 0.0)
+            for k, v in params.items()
+        }
+        safe_params["t_m"] = 0.0
+        safe_params["t_min"] = 0.0
         return Z3VerificationResult(
             is_valid=False,
             status="UNSAT",
-            model_details=params,
-            margin=float("-inf"),
+            model_details=safe_params,
+            margin=-999999.0,
             violations=violations,
             proof_log="Pre-SMT Validation Failure: Missing or non-finite parameters",
         )
@@ -174,9 +188,11 @@ def verify_asme_b31_3(
                 "Y": y_f,
                 "c": c_f,
                 "t_actual": t_act_f,
+                "t_m": 0.0,
+                "t_min": 0.0,
                 "denominator": denom_f,
             },
-            margin=float("-inf"),
+            margin=-999999.0,
             violations=violations,
             proof_log="Pre-SMT Invariant Failure: Parameter bounds violation",
         )
@@ -215,8 +231,13 @@ def verify_asme_b31_3(
             return Z3VerificationResult(
                 is_valid=False,
                 status="UNKNOWN",
-                model_details={"error": "Z3 failed to satisfy base algebraic equations"},
-                margin=float("-inf"),
+                model_details={
+                    "error": "Z3 failed to satisfy base algebraic equations",
+                    "t_m": 0.0,
+                    "t_min": 0.0,
+                    "t_actual": t_act_f,
+                },
+                margin=-999999.0,
                 violations=["Z3 solver could not evaluate minimum wall thickness equation"],
                 proof_log="Z3 Evaluation Error: Base equation unsatisfiable",
             )
@@ -229,10 +250,12 @@ def verify_asme_b31_3(
         t_press_val = float(t_press_rational)
         denom_val = float(denom_rational)
 
-        # Handle IEEE 754 floating point representation artifacts at exact boundary
-        if abs(t_act_f - tm_val) < 1e-12:
+        # Strict ASME B31.3 boundary enforcement: Zero False Assurance Rate (FAR).
+        # Any actual thickness strictly below required thickness is an immediate deficit.
+        # Only when t_act_f exactly equals tm_val in float representation is boundary margin 0.0.
+        if t_act_f == tm_val:
             frac_tact = tm_rational
-            t_act_z = tm_rational
+            t_act_z = z3.RealVal(f"{tm_rational.numerator}/{tm_rational.denominator}")
             margin_rational = fractions.Fraction(0, 1)
             margin_val = 0.0
         else:
@@ -316,12 +339,18 @@ def verify_asme_b31_3(
             proof_log=proof_log,
         )
 
-    except Exception as exc:  # Fail-safe protection
+    except Exception as exc:  # Fail-Safe protection
+        safe_params = {
+            k: (float(v) if v is not None and isinstance(v, (int, float)) and math.isfinite(v) else 0.0)
+            for k, v in params.items()
+        }
+        safe_params["t_m"] = 0.0
+        safe_params["t_min"] = 0.0
         return Z3VerificationResult(
             is_valid=False,
             status="UNKNOWN",
-            model_details=params,
-            margin=float("-inf"),
+            model_details=safe_params,
+            margin=-999999.0,
             violations=[f"Internal SMT verification exception: {exc}"],
             proof_log=f"Fail-Safe Catch: {exc}",
         )

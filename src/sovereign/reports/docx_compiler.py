@@ -24,7 +24,8 @@ def generate_psu_memo(
     """
     out = Path(output_path)
     if not out.parent.exists():
-        # Check if parent directory is genuinely impossible or missing
+        if not out.parent.parent.exists() or output_path.startswith(("/", "\\")):
+            raise FileNotFoundError(f"Target directory does not exist or is unwritable: {out.parent}")
         try:
             out.parent.mkdir(parents=True, exist_ok=True)
         except Exception as e:

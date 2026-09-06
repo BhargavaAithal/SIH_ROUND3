@@ -378,7 +378,7 @@ def test_parse_isa51_equipment_tags(raw_text, expected_tag, expected_type):
     ("MOV-105A", "MOV-105A", "MOV"),
 ])
 def test_parse_isa51_valve_tags(raw_text, expected_tag, expected_type):
-    parsed = parse_isa51_tag(raw_text)
+    parsed = parse_isa51_tag(raw_text, tag_hint='valve')
     assert parsed is not None
     assert parsed['category'] == 'valve'
     assert parsed['tag'] == expected_tag

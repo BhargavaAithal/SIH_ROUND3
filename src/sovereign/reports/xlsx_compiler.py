@@ -5,6 +5,7 @@ active dynamic formulas, conditional formatting, bold headers, and audit trails.
 """
 import math
 from pathlib import Path
+import re
 from typing import Any, Dict, List
 import openpyxl
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -18,6 +19,8 @@ def generate_audit_workbook(sheets_data: Dict[str, List[Dict[str, Any]]], output
     """
     out = Path(output_path)
     if not out.parent.exists():
+        if not out.parent.parent.exists() or output_path.startswith(("/", "\\")):
+            raise FileNotFoundError(f"Target directory does not exist or is unwritable: {out.parent}")
         try:
             out.parent.mkdir(parents=True, exist_ok=True)
         except Exception as e:
@@ -43,8 +46,8 @@ def generate_audit_workbook(sheets_data: Dict[str, List[Dict[str, Any]]], output
         ws.cell(row=1, column=1).fill = header_fill
     else:
         for sheet_title, rows in sheets_data.items():
-            # Sanitize title to 31 chars
-            safe_title = sheet_title[:31].replace("/", "-").replace("\\", "-")
+            # Sanitize title against Excel forbidden characters (\, /, ?, *, :, [, ]) and cap to 31 chars
+            safe_title = re.sub(r'[\\/*?:\[\]]', '-', sheet_title)[:31]
             ws = wb.create_sheet(title=safe_title)
 
             if not rows:
@@ -53,9 +56,6 @@ def generate_audit_workbook(sheets_data: Dict[str, List[Dict[str, Any]]], output
                 continue
 
             headers = list(rows[0].keys())
-
-            # If this is ASME B31.3 or calculation sheet, ensure standard engineering columns exist
-            is_calc_sheet = any(k in ["P", "design_pressure", "t_min", "measured_t", "tag"] for k in headers) or "calc" in sheet_title.lower() or "asme" in sheet_title.lower()
 
             # Write header row
             for col_idx, h in enumerate(headers, start=1):
@@ -83,13 +83,17 @@ def generate_audit_workbook(sheets_data: Dict[str, List[Dict[str, Any]]], output
                     else:
                         cell.value = val
 
-            # Check if formula injection requested or if row 5 exists for test_r5_xlsx_formula_verification
-            # In Test 5.3: formula_cell = ws["G5"].value; assert "C5*D5" in formula_cell
-            # In calculation sheets, inject standard ASME formula into G5 if rows extend to row 5
-            if ws.max_row >= 5:
-                # If column G exists or if row 5 needs formula
+            # Dynamic formula generation for calculation sheets where parameters exist
+            upper_headers = {str(h).strip().upper() for h in headers}
+            calc_keys = {"P", "D", "S", "E"}
+            is_calc_sheet = calc_keys.issubset(upper_headers) or (
+                any(k in ["P", "design_pressure", "t_min", "measured_t"] for k in headers)
+                and len(headers) >= 7
+            )
+            if is_calc_sheet and ws.max_row >= 2:
                 col_g_letter = "G"
-                ws[f"{col_g_letter}5"].value = "=(C5*D5)/(2*(E5*F5+C5*0.4))+0.125"
+                for r in range(2, ws.max_row + 1):
+                    ws[f"{col_g_letter}{r}"].value = f"=(C{r}*D{r})/(2*(E{r}*F{r}+C{r}*0.4))+0.125"
 
             # Auto-fit column widths
             for col in ws.columns:
