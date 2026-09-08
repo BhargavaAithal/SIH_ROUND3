@@ -39,6 +39,9 @@
   - Model Context Protocol: Native MCP Server in Rust daemon exposing production tool schemas over `stdio` and WebSocket transports.
   - Roadmap: Phased Milestone Migration Plan (Phase 1 through Phase 4).
 
+- [x] **Enterprise Sovereign RAG & Knowledge Plane Grilling Session (Settled Design — Phase 12)**:
+  - 22 Core Capabilities designed and architected across 11 sub-phases: Hybrid Qdrant+BM25 retrieval, RRF fusion, local `bge-reranker-base`, parent-child chunking, inline citation provenance, confidence gate refusal (<0.45), chunk-level RBAC payload filtering, document versioning/supersession delta banners, multimodal VLM layout parsing, AST-guarded symbolic code execution + Z3 verification, sub-millisecond semantic caching, router-driven LoRA hot-swapping, indirect prompt injection defense, defensible cryptographic reports (SHA-256 Merkle log), and selective unlearning purge engine.
+
 - [x] **Research Master Index**: Synchronized in [`02_architecture/research/README.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/02_architecture/research/README.md) and [`Architecture.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/Architecture.md).
 
 - [x] **Teamwork Multi-Agent Orchestrator** (`0834ce77-f09c-4fa0-a916-cd5a832b53ad` / `330d14c5-ce92-4635-9f9e-2e934cfd87d8`): Actively Auditing (`auditor_retest` `715ed958-a328-4b27-acab-72c8ec72532e` finalizing forensic audit of remediated modules).

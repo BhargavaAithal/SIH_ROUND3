@@ -108,5 +108,27 @@
   - Quantize checkpoint to 4-bit AWQ (Marlin format) co-located with 7B VLM on single 24GB GPU.
   - Serve merged model via vLLM with XGrammar Pushdown Automata logit masking and Radix Tree prefix caching.
 
-
-
+## Phase 12: Enterprise Sovereign RAG & Knowledge Plane (SETTLED DESIGN)
+- [ ] **Phase 12.1 — Ingestion Pipeline & Multimodal Parsing (`src/sovereign/rag/ingestion.py`)**:
+  - Build parent-child section chunker (Parent ~2000 tokens, Child ~400 tokens).
+  - Integrate local VLM diagram description pipeline and P&ID NetworkX topology graph payload serializer.
+- [ ] **Phase 12.2 — Chunk-Level RBAC & Multi-Tenancy (`src/sovereign/rag/rbac.py`)**:
+  - Enforce vector payload filtering (`clearance_level`, `tenant_id`) in Qdrant and BM25 prior to RRF candidate fusion.
+- [ ] **Phase 12.3 — Hybrid Search, RRF Fusion & bge-reranker (`src/sovereign/rag/retrieval.py`)**:
+  - Implement Top-25 Dense + Top-25 Sparse BM25 retrieval $\rightarrow$ RRF ($k=60$) $\rightarrow$ `bge-reranker-base` Cross-Encoder reranking down to Top-5 Parent Chunks.
+- [ ] **Phase 12.4 — Versioning, Supersession & Semantic Conflict Warnings (`src/sovereign/rag/versioning.py`)**:
+  - Enforce active version defaults and inject `⚠️ SEMANTIC CONFLICT / VERSION DELTA` warning banners when historical versions are referenced.
+- [ ] **Phase 12.5 — Multi-Hop Query Decomposition & Knowledge Graph Router (`src/sovereign/rag/decomposer.py`)**:
+  - LLM decomposer splitting complex queries into RAG document searches + P&ID NetworkX graph queries.
+- [ ] **Phase 12.6 — Prompt Injection Defense & RAG Poisoning Shield (`src/sovereign/rag/security.py`)**:
+  - Implement Heuristic Pattern Sanitizer + Perplexity Anomaly Quarantine + XML `<untrusted_document_context>` boundary wrapping.
+- [ ] **Phase 12.7 — AST-Guarded Symbolic Execution (`src/sovereign/rag/interpreter.py`)**:
+  - Route calculation code through `ast_guard.py` sandbox and Z3 SMT physical constraint verifiers (`z3_asme.py`, `z3_api510.py`).
+- [ ] **Phase 12.8 — Sub-Millisecond Semantic Caching Engine (`src/sovereign/rag/cache.py`)**:
+  - Tiered lookup (Exact MD5 Hash $\rightarrow$ Qdrant similarity $\ge 0.96$) with RBAC and version validity checks.
+- [ ] **Phase 12.9 — Router-Driven LoRA Hot-Swapping (`src/sovereign/rag/lora_router.py`)**:
+  - Hot-swap domain LoRA adapters (ASME, API, PSU Memos) into VRAM based on query classification.
+- [ ] **Phase 12.10 — Citation Provenance Formatter & Slide-out UI Drawer (`src/sovereign/rag/citations.py` & React UI)**:
+  - Format inline bracketed citations `[Doc: X, Sec: Y, Chk: #Z]` and wire slide-out `ProvenanceDrawer.jsx` with text highlighting.
+- [ ] **Phase 12.11 — Defensible Report Generator & Purge Engine (`defensible_report.py` & `purge.py`)**:
+  - Generate cryptographically signed `.docx`/`.pdf` reports with SHA-256 Merkle hashes, and execute selective unlearning purges with WAL tombstones.
