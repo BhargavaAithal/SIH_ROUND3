@@ -221,11 +221,11 @@
   - Implement Top-25 Dense + Top-25 Sparse BM25 retrieval $\rightarrow$ RRF ($k=60$) $\rightarrow$ `bge-reranker-base` Cross-Encoder reranking down to Top-5 Parent Chunks.
 - [x] **Phase 12.4 — Versioning, Supersession & Grounding Evaluation (`src/sovereign/rag/confidence.py`)**:
   - Enforce active version defaults and inject `⚠️ SEMANTIC CONFLICT / VERSION DELTA` warning banners when historical versions are referenced.
-- [ ] **Phase 12.5 — Multi-Hop Query Decomposition & Knowledge Graph Router (`src/sovereign/rag/decomposer.py`)**:
+- [x] **Phase 12.5 — Multi-Hop Query Decomposition & Knowledge Graph Router (`src/sovereign/rag/decomposer.py`)**:
   - LLM decomposer splitting complex queries into RAG document searches + P&ID NetworkX graph queries.
-- [ ] **Phase 12.6 — Prompt Injection Defense & RAG Poisoning Shield (`src/sovereign/rag/security.py`)**:
+- [x] **Phase 12.6 — Prompt Injection Defense & RAG Poisoning Shield (`src/sovereign/rag/security.py`)**:
   - Implement Heuristic Pattern Sanitizer + Perplexity Anomaly Quarantine + XML `<untrusted_document_context>` boundary wrapping.
-- [ ] **Phase 12.7 — AST-Guarded Symbolic Execution (`src/sovereign/rag/interpreter.py`)**:
+- [x] **Phase 12.7 — AST-Guarded Symbolic Execution (`src/sovereign/rag/interpreter.py`)**:
   - Route calculation code through `ast_guard.py` sandbox and Z3 SMT physical constraint verifiers (`z3_asme.py`, `z3_api510.py`).
 - [ ] **Phase 12.8 — Sub-Millisecond Semantic Caching Engine (`src/sovereign/rag/cache.py`)**:
   - Tiered lookup (Exact MD5 Hash $\rightarrow$ Qdrant similarity $\ge 0.96$) with RBAC and version validity checks.
