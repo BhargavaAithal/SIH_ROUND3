@@ -49,6 +49,8 @@ from sovereign.sandbox.launcher import run_sandboxed
 from sovereign.verifier.ast_guard import verify_python_ast
 from sovereign.verifier.z3_api510 import verify_api_510_invariants
 from sovereign.verifier.z3_asme import verify_asme_b31_3
+from sovereign.daemon.mcp_server import MCPServer
+
 
 
 # ---------------------------------------------------------------------------
@@ -242,9 +244,23 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    mcp_instance = MCPServer()
+
+    @app.get("/api/v1/mcp/tools")
+    async def list_mcp_tools():
+        return {"tools": mcp_instance.list_tools()}
+
+    @app.post("/api/v1/mcp/call")
+    async def call_mcp_tool(request: Request):
+        body = await request.json()
+        tool_name = body.get("tool_name")
+        arguments = body.get("arguments", {})
+        return mcp_instance.call_tool(tool_name, arguments)
+
     # -----------------------------------------------------------------------
     # 1. Telemetry Endpoints
     # -----------------------------------------------------------------------
+
 
     @app.get("/api/v1/telemetry/airgap", response_model=AirgapTelemetryResponse)
     async def get_airgap_telemetry():

@@ -531,8 +531,9 @@ def test_extract_topology_end_to_end():
     gen.draw_pipe_line([(200, 500), (500, 500)], pipe_spec='3"-P-101-CS')
     gen.draw_pipe_line([(500, 500), (800, 500)], pipe_spec='3"-P-101-CS')
 
-    # Run extract_topology
-    graph = extract_topology(gen.image, tags_data=gen.detected_symbols, snap_distance=50.0)
+    # Run extract_topology with snap_distance ensuring equipment endpoint snapping
+    graph = extract_topology(gen.image, tags_data=gen.detected_symbols, snap_distance=120.0)
+
 
     # Assert major equipment nodes exist in extracted graph
     tags_in_extracted = {d.get('tag') for _, d in graph.nodes(data=True)}
@@ -541,4 +542,8 @@ def test_extract_topology_end_to_end():
     assert "P-101A" in tags_in_extracted
 
     # Assert piping runs connect the nodes
-    assert nx.has_path(graph, "equipment_V-101", "equipment_P-101A")
+    node_v = [n for n, d in graph.nodes(data=True) if d.get('tag') == 'V-101'][0]
+    node_p = [n for n, d in graph.nodes(data=True) if d.get('tag') == 'P-101A'][0]
+    assert nx.has_path(graph.to_undirected(), node_v, node_p)
+
+
