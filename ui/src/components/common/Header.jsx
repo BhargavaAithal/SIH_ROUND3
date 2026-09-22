@@ -1,25 +1,31 @@
 import React from 'react';
 import { useWorkbenchStore } from '../../store/useWorkbenchStore';
-import { ShieldIcon, SunIcon, MoonIcon, ActivityIcon } from '../../assets/icons';
+import { ShieldIcon, SunIcon, MoonIcon } from '../../assets/icons';
 
 export const Header = () => {
   const {
     activeTab,
     setActiveTab,
+    unlockedTabs,
     theme,
     toggleTheme,
-    airgapStatus,
-    throughputKbps,
+    currentBeat,
+    activeCaseId,
+    resetToBeat1,
     egressBytes,
     setEbpfModalOpen,
   } = useWorkbenchStore();
 
-  const tabs = [
-    { id: 'pid', label: '1. P&ID Viewer Canvas' },
-    { id: 'sandbox', label: '2. Calculation Sandbox' },
-    { id: 'z3', label: '3. Z3 Formal Audit' },
-    { id: 'deliverables', label: '4. Deliverables' },
+  const allTabs = [
+    { id: 'ingest', label: '1. Ingestion', icon: '📁' },
+    { id: 'pid', label: '2. P&ID Spatial Graph', icon: '📐' },
+    { id: 'sandbox', label: '3. Router & Agent', icon: '⚡' },
+    { id: 'z3', label: '4. Z3 Formal Audit', icon: '🛡️' },
+    { id: 'deliverables', label: '5. Deliverables (.DOCX)', icon: '📄' },
   ];
+
+  // Only display tabs that have been reached / unlocked sequentially
+  const visibleTabs = allTabs.filter((t) => (unlockedTabs || ['ingest']).includes(t.id));
 
   return (
     <header style={{
@@ -34,15 +40,19 @@ export const Header = () => {
       zIndex: 50,
       userSelect: 'none',
     }}>
-      {/* Left: Brand & Context */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setActiveTab('pid')}>
+      {/* Left: Sovereign Brand & Active Case Identifier */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
+          onClick={() => setActiveTab('ingest')}
+        >
           <ShieldIcon size={22} color="var(--accent-green)" />
-          <span style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '0.05em', color: 'var(--text-primary)' }}>
+          <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '0.06em', color: 'var(--text-primary)' }}>
             SMITRACE
           </span>
         </div>
-        <div style={{
+
+        <span style={{
           fontSize: '11px',
           fontWeight: 600,
           textTransform: 'uppercase',
@@ -52,84 +62,105 @@ export const Header = () => {
           color: 'var(--text-secondary)',
           border: '1px solid var(--border-subtle)',
         }}>
-          Paradip Refinery • CDU-1
-        </div>
+          CDU-3 • Refinery
+        </span>
+
+        {activeCaseId && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '11px',
+            fontWeight: 700,
+            padding: '2px 8px',
+            borderRadius: '6px',
+            backgroundColor: 'rgba(6, 182, 212, 0.10)',
+            border: '1px solid rgba(6, 182, 212, 0.3)',
+            color: 'var(--accent-cyan)',
+          }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'var(--accent-cyan)' }} />
+            <span>{activeCaseId}</span>
+          </div>
+        )}
       </div>
 
-      {/* Center: 4-Viewport Navigation Tabs */}
+      {/* Center: Sequentially Unlocked Navigation Tabs */}
       <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-        {tabs.map((tab) => {
+        {visibleTabs.map((tab) => {
           const isActive = activeTab === tab.id;
           return (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                padding: '6px 14px',
-                fontSize: '13px',
-                fontWeight: isActive ? 600 : 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: isActive ? 700 : 500,
                 color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                 backgroundColor: isActive ? 'var(--bg-surface-elevated)' : 'transparent',
-                border: 'none',
-                borderBottom: isActive ? '2px solid var(--accent-green)' : '2px solid transparent',
-                borderRadius: '4px 4px 0 0',
+                border: '1px solid',
+                borderColor: isActive ? 'var(--border-default)' : 'transparent',
+                borderRadius: '6px',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
               }}
             >
-              {tab.label}
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
             </button>
           );
         })}
       </nav>
 
-      {/* Right: Sovereignty Badge & Controls */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        {/* Sovereignty Pulsing Badge */}
-        <div
+      {/* Right: Controls & Air-Gap Sovereignty Seal */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Air-Gap Verification Pill */}
+        <button
           onClick={() => setEbpfModalOpen(true)}
-          title="Click to view kernel eBPF socket inspection and air-gap audit"
+          title="Inspect eBPF kernel network monitor and air-gap proof"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: '8px',
-            padding: '5px 12px',
+            padding: '4px 12px',
+            borderRadius: '20px',
             backgroundColor: 'var(--accent-green-bg)',
             border: '1px solid var(--accent-green)',
-            borderRadius: '20px',
+            color: 'var(--accent-green)',
+            fontSize: '11px',
+            fontWeight: 700,
             cursor: 'pointer',
-            transition: 'transform 0.1s ease',
           }}
         >
-          <span className="airgap-indicator-dot" />
-          <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--accent-green)', letterSpacing: '0.04em' }}>
-            AIR-GAP ACTIVE: {egressBytes} BYTES WAN
-          </span>
-          <span style={{ color: 'var(--border-default)', fontSize: '11px' }}>|</span>
-          <span style={{ fontSize: '11px', fontFamily: 'var(--font-mono)', color: 'var(--accent-green)' }}>
-            {throughputKbps.toFixed(2)} KB/s
-          </span>
-        </div>
+          <span className="airgap-indicator-dot" style={{ width: '8px', height: '8px' }} />
+          <span>AIR-GAP: {egressBytes} B WAN</span>
+        </button>
 
-        {/* Theme Toggle */}
+        {currentBeat > 1 && (
+          <button
+            className="glass-btn glass-btn-sm"
+            onClick={resetToBeat1}
+            title="Start new case"
+          >
+            <span>↻</span>
+            <span>New Case</span>
+          </button>
+        )}
+
+        {/* Theme Toggle Button */}
         <button
+          className="glass-btn glass-btn-sm"
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Modern Light' : 'Industrial Dark'} theme`}
-          style={{
-            background: 'var(--bg-surface-elevated)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: '6px',
-            padding: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'var(--text-secondary)',
-          }}
+          style={{ padding: '6px 9px' }}
         >
-          {theme === 'dark' ? <SunIcon size={16} color="var(--accent-amber)" /> : <MoonIcon size={16} color="var(--accent-indigo)" />}
+          {theme === 'dark' ? <SunIcon size={14} color="var(--accent-amber)" /> : <MoonIcon size={14} color="var(--accent-indigo)" />}
         </button>
       </div>
     </header>
   );
 };
+

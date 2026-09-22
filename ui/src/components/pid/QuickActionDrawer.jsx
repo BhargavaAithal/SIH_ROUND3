@@ -32,12 +32,20 @@ export const QuickActionDrawer = () => {
   const [calcResult, setCalcResult] = useState(null);
 
   useEffect(() => {
-    if (activePipeData?.attributes?.nominal_od_in) {
-      setPressure(activePipeData.attributes.nominal_od_in >= 12 ? 400.0 : 550.0);
-      setThickness(activePipeData.attributes.nominal_od_in >= 12 ? 0.320 : 0.365);
+    if (activePipeData) {
+      if (activePipeData.tag?.includes('105') || activePipeData.id?.includes('105')) {
+        setPressure(355.0);
+        setThickness(0.210);
+      } else if (activePipeData.tag?.includes('103') || activePipeData.id?.includes('103')) {
+        setPressure(550.0);
+        setThickness(0.365);
+      } else {
+        setPressure(400.0);
+        setThickness(0.320);
+      }
       setCalcResult(null);
     }
-  }, [activePipeData]);
+  }, [activePipeData?.tag, activePipeData?.id]);
 
   if (!quickDrawerOpen) return null;
 
@@ -144,22 +152,21 @@ export const QuickActionDrawer = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '16px', fontWeight: 800, color: 'var(--accent-cyan)' }}>
-              {activeNodeData?.tag || activePipeData?.tag || 'Equipment Node'}
+              {activeNodeData?.tag || activePipeData?.tag || 'Equipment Item'}
             </span>
             <span style={{
-              fontSize: '10px',
+              fontSize: '11px',
               fontWeight: 700,
-              padding: '2px 6px',
+              padding: '2px 8px',
               borderRadius: '4px',
               backgroundColor: isSat ? 'var(--accent-green-bg)' : 'var(--accent-danger-bg)',
               color: isSat ? 'var(--accent-green)' : 'var(--accent-danger)',
-              border: `1px solid ${isSat ? 'var(--accent-green)' : 'var(--accent-danger)'}`,
             }}>
-              {isSat ? 'SAT' : 'UNSAT'}
+              {isSat ? 'Safe' : 'Needs Attention'}
             </span>
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-            {activeNodeData?.label || 'ASME B31.3 Process Piping'}
+          <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            {activeNodeData?.label || 'Process Piping Line'}
           </div>
         </div>
 
@@ -182,7 +189,7 @@ export const QuickActionDrawer = () => {
         {/* Specification Attributes */}
         <div>
           <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
-            Physical & Specification Attributes
+            Equipment Specifications
           </div>
           <div style={{
             display: 'grid',
@@ -195,27 +202,27 @@ export const QuickActionDrawer = () => {
             fontSize: '11px',
           }}>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Nominal OD (D):</span>
+              <span style={{ color: 'var(--text-muted)' }}>Pipe Diameter:</span>
               <div style={{ fontWeight: 600 }}>{diameter.toFixed(1)}" ({ (diameter * 25.4).toFixed(1) } mm)</div>
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Schedule:</span>
+              <span style={{ color: 'var(--text-muted)' }}>Pipe Schedule:</span>
               <div style={{ fontWeight: 600 }}>{activePipeData?.attributes?.schedule || 'Sch 40'}</div>
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Rating:</span>
+              <span style={{ color: 'var(--text-muted)' }}>Pressure Rating:</span>
               <div style={{ fontWeight: 600 }}>{activePipeData?.attributes?.rating || 'Class 150#'}</div>
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Allowable Stress (S):</span>
+              <span style={{ color: 'var(--text-muted)' }}>Max Allowed Stress:</span>
               <div style={{ fontWeight: 600 }}>20,000 psi</div>
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Quality Factor (E):</span>
-              <div style={{ fontWeight: 600 }}>1.0 (Seamless)</div>
+              <span style={{ color: 'var(--text-muted)' }}>Joint Quality:</span>
+              <div style={{ fontWeight: 600 }}>100% (Seamless)</div>
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)' }}>Corrosion Allow (c):</span>
+              <span style={{ color: 'var(--text-muted)' }}>Corrosion Buffer:</span>
               <div style={{ fontWeight: 600 }}>0.0625" (1.59 mm)</div>
             </div>
           </div>
@@ -228,31 +235,28 @@ export const QuickActionDrawer = () => {
           borderRadius: '8px',
           padding: '12px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
             <SlidersIcon size={14} color="var(--accent-cyan)" />
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>
-              ASME B31.3 Quick Formula Check
+              Quick Thickness Check
             </span>
           </div>
 
-          {/* Equation snippet */}
           <div style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: '10px',
+            fontSize: '11px',
             backgroundColor: 'var(--bg-primary)',
             padding: '6px 8px',
             borderRadius: '4px',
-            color: 'var(--accent-cyan)',
+            color: 'var(--text-secondary)',
             marginBottom: '12px',
-            textAlign: 'center',
           }}>
-            tm = (P * D) / (2 * (S * E + P * Y)) + c
+            Required thickness depends on pressure, diameter, and corrosion safety buffer.
           </div>
 
           {/* Pressure Slider */}
           <div style={{ marginBottom: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Design Pressure (P):</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Operating Pressure:</span>
               <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{pressure.toFixed(1)} psig</span>
             </div>
             <input
@@ -269,7 +273,7 @@ export const QuickActionDrawer = () => {
           {/* Thickness Slider */}
           <div style={{ marginBottom: '12px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '2px' }}>
-              <span style={{ color: 'var(--text-secondary)' }}>Actual Measured Thickness (t):</span>
+              <span style={{ color: 'var(--text-secondary)' }}>Measured Pipe Thickness:</span>
               <span style={{ fontWeight: 600, fontFamily: 'var(--font-mono)' }}>{thickness.toFixed(3)}"</span>
             </div>
             <input
@@ -283,7 +287,7 @@ export const QuickActionDrawer = () => {
             />
           </div>
 
-          {/* Recalculate Formula Button */}
+          {/* Recalculate Button */}
           <button
             onClick={handleRecalculateFormula}
             disabled={isCalculating}
@@ -305,13 +309,12 @@ export const QuickActionDrawer = () => {
             }}
           >
             <SlidersIcon size={12} />
-            {isCalculating ? 'Recalculating Formula...' : 'Recalculate Formula'}
+            {isCalculating ? 'Checking...' : 'Check Thickness Now'}
           </button>
 
-          {/* Recalculated Result Box */}
+          {/* Result Box */}
           <div style={{
             backgroundColor: displaySat ? 'var(--accent-green-bg)' : 'var(--accent-danger-bg)',
-            border: `1px solid ${displaySat ? 'var(--accent-green)' : 'var(--accent-danger)'}`,
             borderRadius: '6px',
             padding: '10px',
             display: 'flex',
@@ -319,11 +322,11 @@ export const QuickActionDrawer = () => {
             gap: '4px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-              <span>Minimum Required (tm):</span>
+              <span>Minimum Required:</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 700 }}>{displayTm.toFixed(4)}"</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px' }}>
-              <span>Safety Margin (Delta):</span>
+              <span>Safety Buffer:</span>
               <span style={{
                 fontFamily: 'var(--font-mono)',
                 fontWeight: 700,
@@ -333,12 +336,12 @@ export const QuickActionDrawer = () => {
               </span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginTop: '2px' }}>
-              <span>Invariant Status:</span>
+              <span>Status:</span>
               <span style={{
                 fontWeight: 800,
                 color: displaySat ? 'var(--accent-green)' : 'var(--accent-danger)',
               }}>
-                {displaySat ? 'VERIFIED SAT' : 'DEFICIT UNSAT'}
+                {displaySat ? 'SAFE TO OPERATE' : 'TOO THIN (NEEDS ATTENTION)'}
               </span>
             </div>
           </div>
@@ -355,29 +358,29 @@ export const QuickActionDrawer = () => {
         gap: '8px',
       }}>
         <button
-          onClick={handleSendToZ3}
-          disabled={isVerifying}
+          onClick={handleSendToSandbox}
           style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: '8px',
-            padding: '8px 14px',
-            backgroundColor: 'var(--accent-indigo)',
-            color: '#FFFFFF',
+            padding: '9px 14px',
+            backgroundColor: 'var(--accent-green)',
+            color: '#0B0F19',
             border: 'none',
             borderRadius: '6px',
             fontSize: '12px',
-            fontWeight: 600,
-            cursor: isVerifying ? 'wait' : 'pointer',
+            fontWeight: 700,
+            cursor: 'pointer',
           }}
         >
-          <ShieldIcon size={14} />
-          {isVerifying ? 'Verifying with Z3...' : 'Verify in Z3 Formal Verifier'}
+          <TerminalIcon size={14} />
+          Calculate in Step 2 ➔
         </button>
 
         <button
-          onClick={handleSendToSandbox}
+          onClick={handleSendToZ3}
+          disabled={isVerifying}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -390,11 +393,11 @@ export const QuickActionDrawer = () => {
             borderRadius: '6px',
             fontSize: '12px',
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: isVerifying ? 'wait' : 'pointer',
           }}
         >
-          <TerminalIcon size={14} />
-          Send to ReAct Sandbox
+          <ShieldIcon size={14} />
+          {isVerifying ? 'Checking...' : 'Check Safety in Step 3 ➔'}
         </button>
       </div>
     </aside>

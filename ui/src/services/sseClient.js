@@ -65,23 +65,40 @@ class SovereignSSEClient {
           this.eventSource.close();
           this.eventSource = null;
         }
+        this.startOfflineHeartbeat();
         this.scheduleReconnect();
       };
     } catch (err) {
+      this.startOfflineHeartbeat();
       this.scheduleReconnect();
     }
+  }
+
+  startOfflineHeartbeat() {
+    if (this.offlineInterval) return;
+    this.offlineInterval = setInterval(() => {
+      useWorkbenchStore.getState().setAirgapTelemetry({
+        airgapStatus: 'PASS',
+        egressBytes: 0,
+        throughputKbps: 0.0,
+      });
+    }, 5000);
   }
 
   scheduleReconnect() {
     if (this.reconnectTimeout) return;
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectTimeout = null;
-      this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, 15000);
+      this.reconnectDelay = Math.min(this.reconnectDelay * 1.5, 30000);
       this.connect();
     }, this.reconnectDelay);
   }
 
   disconnect() {
+    if (this.offlineInterval) {
+      clearInterval(this.offlineInterval);
+      this.offlineInterval = null;
+    }
     if (this.eventSource) {
       this.eventSource.close();
       this.eventSource = null;

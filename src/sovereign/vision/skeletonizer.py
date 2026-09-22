@@ -159,18 +159,51 @@ def _zhang_suen_thinning(binary_image: np.ndarray) -> np.ndarray:
 _zhang_suen_pure_numpy = _zhang_suen_thinning
 
 
-def skeletonize_lines(image_or_patch, method: str = "auto") -> np.ndarray:
-    """
-    Perform morphological thinning on binary drawing to extract 1-pixel skeletons.
-    Handles empty images, inverted backgrounds, and noise filtering.
-    """
-    if hasattr(image_or_patch, "image_array"):
-        img = image_or_patch.image_array
-    else:
-        img = image_or_patch
+def bridge_drawing_gaps(binary: np.ndarray, max_gap_pixels: int = 5) -> np.ndarray:
+    """Aggressive gap-bridging heuristic combining directional morphological closing
+    and Probabilistic Hough line bridging to reconnect broken scan rasters and dashed lines."""
+    if not cv2 or np.count_nonzero(binary) == 0:
+        return binary
 
-    if img is None:
-        raise ValueError("Invalid image input")
+    bridged = binary.copy()
+
+    # 1. Directional morphological closing to bridge collinear breaks without blurring parallel pipes
+    h_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (max_gap_pixels, 1))
+    v_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, max_gap_pixels))
+    closed_h = cv2.morphologyEx(bridged, cv2.MORPH_CLOSE, h_kernel)
+    closed_v = cv2.morphologyEx(bridged, cv2.MORPH_CLOSE, v_kernel)
+    bridged = cv2.bitwise_or(bridged, cv2.bitwise_or(closed_h, closed_v))
+
+    # 2. Probabilistic Hough Transform to bridge collinear endpoints across small scanner dropouts
+    try:
+        lines = cv2.HoughLinesP(
+            bridged,
+            rho=1,
+            theta=np.pi / 180,
+            threshold=25,
+            minLineLength=15,
+            maxLineGap=max_gap_pixels
+        )
+        if lines is not None:
+            for line in lines:
+                x1, y1, x2, y2 = line[0]
+                cv2.line(bridged, (x1, y1), (x2, y2), 255, 1)
+    except Exception:
+        pass
+
+    return bridged
+
+
+def skeletonize_lines(img: Any, method: str = "opencv", bridge_gaps: bool = True) -> np.ndarray:
+    """
+    Produce a 1-pixel wide skeleton from a process drawing image or patch.
+    Preserves exact connectivity and applies aggressive gap-bridging heuristics before thinning.
+    """
+    if hasattr(img, "image_array"):
+        img = img.image_array
+
+    if img is None or not isinstance(img, np.ndarray) or img.size == 0 or len(img.shape) < 2 or 0 in img.shape:
+        raise ValueError("Empty or invalid image array")
 
     if len(img.shape) == 3:
         if cv2:
@@ -191,7 +224,11 @@ def skeletonize_lines(image_or_patch, method: str = "auto") -> np.ndarray:
     elif np.count_nonzero(binary) == 0:
         return np.zeros_like(gray, dtype=np.uint8)
 
-    # Morphological open
+    # Aggressive gap-bridging heuristic before thinning
+    if bridge_gaps and cv2:
+        binary = bridge_drawing_gaps(binary, max_gap_pixels=5)
+
+    # Morphological open to remove single-pixel isolated noise
     if cv2:
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2, 2))
         binary = cv2.morphologyEx(binary, cv2.MORPH_OPEN, kernel)

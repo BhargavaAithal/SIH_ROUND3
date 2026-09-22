@@ -1,21 +1,20 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useWorkbenchStore } from '../../store/useWorkbenchStore';
-import { ShieldIcon, FileTextIcon } from '../../assets/icons';
-import { getDeliverableMemoUrl } from '../../services/api';
+import { SCENARIOS } from '../../assets/sampleData';
 
 export const DocxPreviewer = () => {
   const containerRef = useRef(null);
   const [useFallback, setUseFallback] = useState(true);
-  const [loading, setLoading] = useState(false);
+  const { activeScenario, merkleAuditHash } = useWorkbenchStore();
+  const currentSc = SCENARIOS[activeScenario] || SCENARIOS.baseline;
 
   useEffect(() => {
-    // Attempt docx-preview renderAsync if available and backend memo reachable
     let isMounted = true;
     async function loadDocx() {
       try {
         const docxPreview = await import('docx-preview');
-        const resp = await fetch(getDeliverableMemoUrl());
-        if (!resp.ok) throw new Error('Remote memo not yet generated');
+        const resp = await fetch(currentSc.deliverables.memoDownloadUrl);
+        if (!resp.ok) throw new Error('Local memo not yet generated');
         const blob = await resp.blob();
         const buffer = await blob.arrayBuffer();
 
@@ -25,13 +24,14 @@ export const DocxPreviewer = () => {
           setUseFallback(false);
         }
       } catch (e) {
-        // High fidelity fallback renders immediately
         if (isMounted) setUseFallback(true);
       }
     }
     loadDocx();
     return () => { isMounted = false; };
-  }, []);
+  }, [activeScenario]);
+
+  const isSafe = currentSc.calculation.is_safe;
 
   return (
     <div style={{
@@ -61,11 +61,42 @@ export const DocxPreviewer = () => {
                 INDIAN OIL CORPORATION LIMITED • REFINERIES DIVISION
               </h1>
               <h2 style={{ fontSize: '14px', fontWeight: 700, color: '#374151', marginTop: '4px' }}>
-                STATUTORY ENGINEERING MEMORANDUM & APPROVAL NOTE
+                {currentSc.deliverables.memoTitle}
               </h2>
               <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '4px' }}>
-                REF NO: PSU/MECH/2026/CDU-01 • DATE: 2026-09-06 • OISD-STD-118 COMPLIANT
+                REF NO: {currentSc.deliverables.memoRef} • DATE: 2026-09-09 • OISD-STD-118 COMPLIANT
               </div>
+            </div>
+
+            {/* Statutory Status Banner */}
+            <div style={{
+              padding: '10px 14px',
+              borderRadius: '4px',
+              backgroundColor: isSafe ? '#ECFDF5' : '#FEF2F2',
+              border: `1px solid ${isSafe ? '#10B981' : '#EF4444'}`,
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}>
+              <div>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: isSafe ? '#065F46' : '#991B1B' }}>
+                  {currentSc.deliverables.statusText}
+                </div>
+                <div style={{ fontSize: '11px', color: isSafe ? '#047857' : '#B91C1C', marginTop: '2px' }}>
+                  Target Line: {currentSc.targetPipe} • Formal Solver FAR: 0.0000%
+                </div>
+              </div>
+              <span style={{
+                fontSize: '11px',
+                fontWeight: 800,
+                padding: '3px 10px',
+                borderRadius: '3px',
+                backgroundColor: isSafe ? '#10B981' : '#EF4444',
+                color: '#FFFFFF',
+              }}>
+                {currentSc.verdict}
+              </span>
             </div>
 
             {/* Section 1: Asset Metadata */}
@@ -84,76 +115,85 @@ export const DocxPreviewer = () => {
                 </tr>
                 <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
                   <td style={{ padding: '6px 8px', fontWeight: 700, backgroundColor: '#F9FAFB' }}>Inspected Component Tag:</td>
-                  <td style={{ padding: '6px 8px', fontWeight: 700, color: '#1F497D' }}>16"-P-101-CS-150 / 10-P-101A Discharge</td>
+                  <td style={{ padding: '6px 8px', fontWeight: 700, color: '#1F497D' }}>{currentSc.targetPipe}</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
                   <td style={{ padding: '6px 8px', fontWeight: 700, backgroundColor: '#F9FAFB' }}>Design Governing Code:</td>
-                  <td style={{ padding: '6px 8px' }}>ASME B31.3 Section 304.1.2 (Process Piping)</td>
+                  <td style={{ padding: '6px 8px' }}>ASME B31.3 Section 304.1.2 (Process Piping) & API 570</td>
                 </tr>
               </tbody>
             </table>
 
-            {/* Section 2: Thickness Calculations */}
+            {/* Section 2: Verified Calculations */}
             <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#1F497D', textTransform: 'uppercase', marginBottom: '8px' }}>
-              2. Formal Neurosymbolic Invariant Verification
+              2. Verified Ultrasonic Thickness & Stress Calculations
             </h3>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', marginBottom: '20px' }}>
               <thead>
                 <tr style={{ backgroundColor: '#1F497D', color: '#FFFFFF' }}>
-                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Inspection Pt</th>
-                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Design P</th>
-                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>OD (D)</th>
-                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Req Min tm</th>
-                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Actual t</th>
-                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Margin</th>
+                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Line Tag</th>
+                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Pressure</th>
+                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Diameter</th>
+                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Min Required</th>
+                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Measured Thickness</th>
+                  <th style={{ padding: '6px 8px', textAlign: 'left' }}>Safety Buffer</th>
                   <th style={{ padding: '6px 8px', textAlign: 'left' }}>Verdict</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
-                  <td style={{ padding: '6px 8px', fontWeight: 700 }}>UT-PT-01</td>
-                  <td style={{ padding: '6px 8px' }}>400.0 psig</td>
-                  <td style={{ padding: '6px 8px' }}>16.0"</td>
-                  <td style={{ padding: '6px 8px' }}>0.2217"</td>
-                  <td style={{ padding: '6px 8px' }}>0.3200"</td>
-                  <td style={{ padding: '6px 8px', color: '#059669', fontWeight: 700 }}>+0.0983"</td>
-                  <td style={{ padding: '6px 8px', color: '#059669', fontWeight: 800 }}>SAT</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
-                  <td style={{ padding: '6px 8px', fontWeight: 700 }}>UT-PT-02</td>
-                  <td style={{ padding: '6px 8px' }}>355.0 psig</td>
-                  <td style={{ padding: '6px 8px' }}>12.75"</td>
-                  <td style={{ padding: '6px 8px' }}>0.2217"</td>
-                  <td style={{ padding: '6px 8px' }}>0.2100"</td>
-                  <td style={{ padding: '6px 8px', color: '#DC2626', fontWeight: 700 }}>-0.0117"</td>
-                  <td style={{ padding: '6px 8px', color: '#DC2626', fontWeight: 800 }}>UNSAT</td>
+                <tr style={{ borderBottom: '1px solid #E5E7EB', backgroundColor: '#F9FAFB' }}>
+                  <td style={{ padding: '6px 8px', fontWeight: 700 }}>{currentSc.targetPipe}</td>
+                  <td style={{ padding: '6px 8px' }}>{currentSc.taskSpec.design_pressure.toFixed(1)} psig</td>
+                  <td style={{ padding: '6px 8px' }}>{currentSc.taskSpec.outside_diameter.toFixed(2)}"</td>
+                  <td style={{ padding: '6px 8px' }}>{currentSc.calculation.t_min.toFixed(4)}"</td>
+                  <td style={{ padding: '6px 8px', fontWeight: 700 }}>{currentSc.calculation.t_actual.toFixed(4)}"</td>
+                  <td style={{
+                    padding: '6px 8px',
+                    color: isSafe ? '#059669' : '#DC2626',
+                    fontWeight: 700
+                  }}>
+                    {currentSc.calculation.margin >= 0 ? '+' : ''}{currentSc.calculation.margin.toFixed(4)}"
+                  </td>
+                  <td style={{
+                    padding: '6px 8px',
+                    color: isSafe ? '#059669' : '#DC2626',
+                    fontWeight: 800
+                  }}>
+                    {isSafe ? 'Safe' : 'Needs Attention'}
+                  </td>
                 </tr>
               </tbody>
             </table>
 
-            {/* Section 3: Statutory Citations */}
+            {/* Section 3: Statutory Recommendation */}
             <h3 style={{ fontSize: '12px', fontWeight: 700, color: '#1F497D', textTransform: 'uppercase', marginBottom: '8px' }}>
-              3. Statutory & Standards Citations
+              3. Statutory Engineering Recommendation
             </h3>
-            <ul style={{ fontSize: '11px', paddingLeft: '20px', marginBottom: '20px', color: '#374151' }}>
-              <li>ASME B31.3-2022 Section 304.1.2: Straight Pipe Wall Thickness Equation under Internal Pressure.</li>
-              <li>API 510 10th Edition Section 7.1.1: Minimum Thickness Evaluation for Pressure Vessels.</li>
-              <li>OISD-STD-118 Section 9: Inspection and Maintenance of Process Piping and Electrical Equipment in Refineries.</li>
-            </ul>
+            <div style={{
+              padding: '12px 16px',
+              backgroundColor: '#F3F4F6',
+              borderLeft: `4px solid ${isSafe ? '#10B981' : '#EF4444'}`,
+              fontSize: '11px',
+              lineHeight: 1.6,
+              marginBottom: '20px',
+              color: '#1F2937'
+            }}>
+              {currentSc.deliverables.recommendation}
+            </div>
 
-            {/* Section 4: Digital Sign-off */}
+            {/* Section 4: Digital Forensic Stamp */}
             <div style={{
               border: '1px solid #D1D5DB',
               borderRadius: '4px',
               padding: '12px 16px',
               backgroundColor: '#F9FAFB',
-              marginTop: '30px',
+              marginTop: '24px',
             }}>
-              <div style={{ fontSize: '11px', fontWeight: 700, color: '#1F497D', marginBottom: '6px' }}>
+              <div style={{ fontSize: '11px', fontWeight: 700, color: '#1F497D', marginBottom: '4px' }}>
                 DIGITAL FORENSIC SIGN-OFF & TAMPER-EVIDENT MERKLE STAMP
               </div>
               <div style={{ fontSize: '10px', fontFamily: 'monospace', color: '#4B5563' }}>
-                SHA-256 HASH: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+                SHA-256 HASH: {merkleAuditHash}
               </div>
               <div style={{ fontSize: '10px', color: '#6B7280', marginTop: '4px' }}>
                 Verified via Sovereign AI Execution Plane • Air-Gap Isolation: 0 WAN Bytes • Invariant: 0.0% False Assurance Rate

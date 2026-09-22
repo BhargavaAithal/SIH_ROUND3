@@ -41,7 +41,7 @@ export const PIDToolbar = () => {
       {/* Zoom Controls */}
       <button
         onClick={handleZoomIn}
-        title="Zoom In (Wheel Up)"
+        title="Zoom In"
         style={{
           background: 'transparent',
           border: 'none',
@@ -61,7 +61,7 @@ export const PIDToolbar = () => {
 
       <button
         onClick={handleZoomOut}
-        title="Zoom Out (Wheel Down)"
+        title="Zoom Out"
         style={{
           background: 'transparent',
           border: 'none',
@@ -79,7 +79,7 @@ export const PIDToolbar = () => {
 
       <button
         onClick={handleReset}
-        title="Reset 100%"
+        title="Reset View"
         style={{
           background: 'transparent',
           border: 'none',
@@ -95,7 +95,7 @@ export const PIDToolbar = () => {
 
       <button
         onClick={handleFit}
-        title="Fit Flowsheet"
+        title="Fit to Screen"
         style={{
           background: 'transparent',
           border: 'none',
@@ -112,7 +112,7 @@ export const PIDToolbar = () => {
       <div style={{ width: '1px', height: '18px', backgroundColor: 'var(--border-subtle)' }} />
 
       {/* Layer Toggles */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px' }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: 'var(--text-secondary)' }}>
           <input
             type="checkbox"
@@ -127,7 +127,7 @@ export const PIDToolbar = () => {
             checked={visibleLayers.piping}
             onChange={() => toggleLayer('piping')}
           />
-          Piping
+          Pipes
         </label>
       </div>
     </div>

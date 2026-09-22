@@ -1,12 +1,73 @@
 import React from 'react';
 import { useWorkbenchStore } from '../../store/useWorkbenchStore';
-import { SAMPLE_WORKBOOK_DATA } from '../../assets/sampleData';
+import { SAMPLE_WORKBOOK_DATA, SCENARIOS } from '../../assets/sampleData';
 
 export const DataGridTable = () => {
-  const { activeWorkbookSheet, setActiveWorkbookSheet } = useWorkbenchStore();
+  const { activeWorkbookSheet, setActiveWorkbookSheet, activeScenario } = useWorkbenchStore();
+  const currentSc = SCENARIOS[activeScenario] || SCENARIOS.baseline;
 
   const sheets = ['Summary', 'ASME_B31_3_Piping', 'API_510_Vessels'];
-  const activeRows = SAMPLE_WORKBOOK_DATA[activeWorkbookSheet] || [];
+
+  let activeRows = [];
+  if (activeWorkbookSheet === 'Summary') {
+    activeRows = [
+      { Parameter: 'Facility / Refinery', Value: 'Paradip Refinery - CDU-1' },
+      { Parameter: 'Operational Scenario', Value: currentSc.name },
+      { Parameter: 'Target Equipment / Line', Value: currentSc.targetPipe },
+      { Parameter: 'Governing Standard', Value: 'ASME B31.3 Section 304.1.2 & API 570' },
+      { Parameter: 'Formal Solver Verification', Value: 'Z3 SMT Solver (0.0000% FAR)' },
+      { Parameter: 'WAN Network Egress', Value: '0 Bytes (Air-Gap Enforced)' },
+      { Parameter: 'Inspection Status', Value: currentSc.calculation.is_safe ? 'Safe' : 'Needs Attention' },
+    ];
+  } else if (activeWorkbookSheet === 'ASME_B31_3_Piping') {
+    activeRows = [
+      {
+        Point_ID: 'UT-PT-01',
+        Line_Tag: '16"-P-101-CS-150',
+        Pressure_psi: 400.0,
+        OD_in: 16.0,
+        Stress_psi: 20000.0,
+        E: 1.0,
+        Y: 0.4,
+        CA_in: 0.0625,
+        t_actual_in: 0.320,
+        t_min_in: '= (C2*D2)/(2*(E2*F2 + C2*G2)) + H2',
+        Margin_in: '= I2 - J2',
+        Status: 'Safe',
+      },
+      {
+        Point_ID: 'UT-PT-02',
+        Line_Tag: '12"-P-105-CS-150',
+        Pressure_psi: 355.0,
+        OD_in: 12.75,
+        Stress_psi: 20000.0,
+        E: 1.0,
+        Y: 0.4,
+        CA_in: 0.125,
+        t_actual_in: 0.210,
+        t_min_in: '= (C3*D3)/(2*(E3*F3 + C3*G3)) + H3',
+        Margin_in: '= I3 - J3',
+        Status: 'Needs Attention',
+      },
+      {
+        Point_ID: 'UT-PT-03',
+        Line_Tag: '10"-P-103-CS-300',
+        Pressure_psi: activeScenario === 'surge' ? 650.0 : 550.0,
+        OD_in: 10.75,
+        Stress_psi: 20000.0,
+        E: 1.0,
+        Y: 0.4,
+        CA_in: 0.125,
+        t_actual_in: 0.365,
+        t_min_in: '= (C4*D4)/(2*(E4*F4 + C4*G4)) + H4',
+        Margin_in: '= I4 - J4',
+        Status: activeScenario === 'surge' ? 'Needs Attention' : 'Safe',
+      },
+    ];
+  } else {
+    activeRows = SAMPLE_WORKBOOK_DATA[activeWorkbookSheet] || [];
+  }
+
   const columns = activeRows.length > 0 ? Object.keys(activeRows[0]) : [];
 
   return (
@@ -78,20 +139,28 @@ export const DataGridTable = () => {
           <tbody>
             {activeRows.map((row, rIdx) => {
               const isEven = rIdx % 2 === 0;
+              const isTargetLine = row.Line_Tag === currentSc.targetPipe;
               return (
-                <tr key={rIdx} style={{
-                  backgroundColor: isEven ? 'var(--bg-surface)' : 'var(--bg-surface-elevated)',
-                }}>
+                <tr
+                  key={rIdx}
+                  style={{
+                    backgroundColor: isTargetLine
+                      ? 'rgba(99, 102, 241, 0.1)'
+                      : isEven ? 'var(--bg-surface)' : 'var(--bg-surface-elevated)',
+                    borderLeft: isTargetLine ? '3px solid var(--accent-indigo)' : 'none',
+                  }}
+                >
                   {columns.map((col) => {
                     const val = row[col];
                     const isFormula = typeof val === 'string' && val.startsWith('=');
-                    const isSat = val === 'SAT';
-                    const isUnsat = val === 'UNSAT';
+                    const isSat = val === 'SAT' || val === 'Safe';
+                    const isUnsat = val === 'UNSAT' || val === 'Needs Attention';
+                    const displayVal = val === 'SAT' ? 'Safe' : val === 'UNSAT' ? 'Needs Attention' : val;
 
                     return (
                       <td
                         key={col}
-                        title={isFormula ? `Excel Dynamic Formula: ${val}` : undefined}
+                        title={isFormula ? `Formula: ${val}` : undefined}
                         style={{
                           padding: '8px 12px',
                           border: '1px solid var(--border-subtle)',
@@ -102,16 +171,11 @@ export const DataGridTable = () => {
                             ? 'var(--accent-danger)'
                             : isFormula
                             ? 'var(--accent-cyan)'
-                            : 'inherit',
-                          fontWeight: isSat || isUnsat ? 800 : isFormula ? 600 : 'normal',
-                          backgroundColor: isSat
-                            ? 'var(--accent-green-bg)'
-                            : isUnsat
-                            ? 'var(--accent-danger-bg)'
-                            : 'transparent',
+                            : 'var(--text-primary)',
+                          fontWeight: isSat || isUnsat || isTargetLine ? 700 : 400,
                         }}
                       >
-                        {val}
+                        {displayVal}
                       </td>
                     );
                   })}

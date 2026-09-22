@@ -7,9 +7,9 @@
 ---
 
 ## Overview
-The **Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)** is an enterprise-grade AI system built specifically for regulated industrial environments. It enables engineering and operations personnel to parse high-resolution engineering prints (P&IDs), process handwritten/scanned inspection logs, run ASME/API code calculations, and synthesize official PSU approval notes without exposing confidential enterprise payloads to external cloud datacenters.
+The **Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)** is an enterprise-grade AI system built specifically for regulated industrial environments. It enables engineering and operations personnel to parse high-resolution engineering prints (P&IDs), process inspection logs, run ASME/API code calculations, and synthesize official PSU approval notes without exposing confidential enterprise payloads to external cloud datacenters.
 
-## Core Breakthroughs & Features (Phase 11 God-Mode Architecture)
+## Core Breakthroughs & Features
 - **High-Performance Rust Daemon Core**: Static `musl` compiled Axum + Tokio backend with POSIX `shm_open` UDS gRPC IPC (<250ns latency) orchestrating Python workers.
 - **Native Model Context Protocol (MCP)**: Production JSON-RPC 2.0 tool schemas over `stdio` and WebSockets for local Z3 and OOXML integration.
 - **WebGL 2.0 / WebGPU Viewport Engine**: Pixi.js v8 rendering 50,000+ interactive P&ID nodes at 60 FPS with $O(1)$ constant-time offscreen color picking.
@@ -23,13 +23,17 @@ The **Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)** is an ent
 
 ---
 
-## Workspace Documentation Layout
-- [`context.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/context.md) / [`CONTEXT.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/CONTEXT.md): System executive context & regulatory domain background.
-- [`State.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/State.md): Active task status & execution state tracking.
-- [`PRD.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/PRD.md) / [`01_product/prd.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/01_product/prd.md): Product Requirements Document & Demonstration Workflows.
-- [`TRD.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/TRD.md) / [`02_architecture/trd.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/02_architecture/trd.md): Technical Requirements Document & Technology Stack.
-- [`Architecture.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/Architecture.md) / [`02_architecture/system-design.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/02_architecture/system-design.md): System Master Architecture & Breakthrough Details.
-- [`ToDo.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/ToDo.md) / [`Roadmap.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/Roadmap.md): Implementation roadmap & verification task checklist.
+## Workspace Layout
+- [`Architecture.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/Architecture.md): Master System Architecture Blueprint, Breakthroughs & Interface Contracts.
+- [`TRD.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/TRD.md): Technical Requirements Document & Technology Stack.
+- [`PRD.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/PRD.md): Product Requirements Document & Demonstration Workflows.
+- [`context.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/context.md): System executive context, ubiquitous language & regulatory domain background.
+- [`adr.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/adr.md): Consolidated Master Architectural Decision Records (ADR-001 through ADR-007).
+- [`ToDo.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/ToDo.md): Layered Architectural To-Do List (Layer 0 to Layer 7).
+- [`planning/`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/planning/): Active task state and milestone tracking (`planning/State.md`).
+- [`research/`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/research/): Deep technical research papers and gap analyses (`research/model_auto_selection_gap_analysis.md`).
+- [`tests/`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/tests/): End-to-end verification suites, boundary checks, and resilience tests.
+- [`cache/`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/cache/): Designated local cache directory.
 
 ---
 
