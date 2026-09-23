@@ -3,7 +3,20 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: 'airgap-cdn-sanitizer',
+      transform(code) {
+        if (code && code.includes('cdn.jsdelivr.net')) {
+          return {
+            code: code.replace(/https?:\/\/cdn\.jsdelivr\.net[^\s"']*/g, '/local/transcoders'),
+            map: null,
+          };
+        }
+      },
+    },
+  ],
   base: './',
   server: {
     host: '127.0.0.1',

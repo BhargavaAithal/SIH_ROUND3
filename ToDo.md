@@ -83,8 +83,8 @@
 ---
 
 ## Layer 7: God-Mode Next-Gen Target Architecture (Phase 11 / Settled ADR-001 & ADR-006)
-- [ ] **7.1 Rust Axum + Tokio Control Plane Daemon**: Build native `musl` daemon replacing Python API server (<10ms boot time, 8.4MB RSS, sub-millisecond tail latency).
-- [ ] **7.2 POSIX Shared Memory Ring Buffer**: Implement `/dev/shm/smitrace_matrix_shm` with lock-free MPMC ring buffers (<250ns image transfer).
-- [ ] **7.3 Native Model Context Protocol (MCP) Server**: Implement native MCP server exposing tools (`z3_formal_audit`, `pid_topology_query`, `asme_stress_calc`, `compile_ooxml_document`) over `stdio` and WebSocket.
-- [ ] **7.4 Pixi.js WebGL 2.0 / WebGPU Viewport Engine**: Deploy hardware-accelerated viewport with offscreen color picking buffers for 50,000+ vector elements at 60 FPS.
-- [ ] **7.5 vLLM AWQ 4-bit Model Co-location**: Hard-pin merged 14B reasoning model (<8.5GB) alongside lightweight vision backbone (<1.2GB) within 24GB VRAM ceiling.
+- [x] **7.1 Rust Axum + Tokio Control Plane Daemon**: Build native `musl` daemon replacing Python API server (<10ms boot time, 8.4MB RSS, sub-millisecond tail latency).
+- [x] **7.2 POSIX Shared Memory Ring Buffer**: Implement `/dev/shm/smitrace_matrix_shm` with lock-free MPMC ring buffers (<250ns image transfer).
+- [x] **7.3 Native Model Context Protocol (MCP) Server**: Implement native MCP server exposing tools (`z3_formal_audit`, `pid_topology_query`, `asme_stress_calc`, `compile_ooxml_document`) over `stdio` and WebSocket.
+- [x] **7.4 Pixi.js WebGL 2.0 / WebGPU Viewport Engine**: Deploy hardware-accelerated viewport with offscreen color picking buffers for 50,000+ vector elements at 60 FPS.
+- [x] **7.5 vLLM AWQ 4-bit Model Co-location**: Hard-pin merged 14B reasoning model (<8.5GB) alongside lightweight vision backbone (<1.2GB) within 24GB VRAM ceiling.

@@ -1015,6 +1015,22 @@ def create_app() -> FastAPI:
         }
 
     # -----------------------------------------------------------------------
+    # 10. Model Co-location Telemetry (Item 7.5)
+    # -----------------------------------------------------------------------
+
+    @app.get("/api/v1/models/telemetry")
+    async def get_model_telemetry():
+        """
+        Returns vLLM AWQ 4-bit model co-location VRAM telemetry.
+        Hard-pinned budgets: Reasoner <8.5 GB, Vision <1.2 GB, total <24 GB.
+        """
+        try:
+            from sovereign.models.colocation_manager import get_vram_telemetry
+            return get_vram_telemetry()
+        except Exception as exc:
+            raise HTTPException(status_code=500, detail=str(exc))
+
+    # -----------------------------------------------------------------------
     # Static Assets & SPA Fallback Routing
     # -----------------------------------------------------------------------
 

@@ -4,17 +4,22 @@ import { PIDToolbar } from './PIDToolbar';
 import { Minimap } from './Minimap';
 import { QuickActionDrawer } from './QuickActionDrawer';
 import { StoragePlaneExplorer } from '../storage/StoragePlaneExplorer';
+import { PixiPIDCanvas } from './PixiPIDCanvas';
 import { useWorkbenchStore } from '../../store/useWorkbenchStore';
 import { fetchTopology } from '../../services/api';
 
 export const PIDViewerTab = () => {
   const { setTopology, storageView, setStorageView, setActiveTab, unlockTab } = useWorkbenchStore();
-  const [activeSubView, setActiveSubView] = useState('schematic'); // 'schematic' | 'storage'
+  const [activeSubView, setActiveSubView] = useState('schematic'); // 'schematic' | 'storage' | 'gpu'
+  const [topology, setTopologyLocal] = useState({ nodes: [], edges: [] });
 
   useEffect(() => {
     fetchTopology()
       .then((data) => {
-        if (data) setTopology(data);
+        if (data) {
+          setTopology(data);
+          setTopologyLocal(data);
+        }
       })
       .catch(() => {});
   }, [setTopology]);
@@ -73,6 +78,25 @@ export const PIDViewerTab = () => {
             <span>🗄️</span>
             <span>Sovereign Storage Plane Explorer (Graph / Tables / WAL)</span>
           </button>
+          <button
+            onClick={() => setActiveSubView('gpu')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '5px 12px',
+              borderRadius: '6px',
+              border: activeSubView === 'gpu' ? '1px solid var(--accent-violet, #a855f7)' : '1px solid var(--border-subtle)',
+              backgroundColor: activeSubView === 'gpu' ? 'rgba(168,85,247,0.12)' : 'transparent',
+              color: activeSubView === 'gpu' ? '#a855f7' : 'var(--text-secondary)',
+              fontWeight: activeSubView === 'gpu' ? 700 : 500,
+              fontSize: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            <span>⚡</span>
+            <span>GPU Viewport (WebGL 2.0 · 50k+ elements)</span>
+          </button>
         </div>
 
         <button
@@ -107,6 +131,13 @@ export const PIDViewerTab = () => {
             <Minimap />
             <QuickActionDrawer />
           </>
+        ) : activeSubView === 'gpu' ? (
+          <PixiPIDCanvas
+            nodes={topology.nodes || []}
+            edges={topology.edges || []}
+            onNodeSelect={(node) => console.log('[GPU] selected:', node)}
+            onNodeHover={(node) => {}}
+          />
         ) : (
           <StoragePlaneExplorer />
         )}
