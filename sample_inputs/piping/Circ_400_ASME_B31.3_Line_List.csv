@@ -1,0 +1,5 @@
+Line_Number,Service_Description,Diameter_OD_in,Design_Press_psig,Design_Temp_degF,Material_Specification,Allowable_Stress_S_psi,Joint_Eff_E,Temp_Coeff_Y,Corrosion_Allowance_c_in,Nominal_Wall_in,Standard_Code
+12-OH-4001-A1A,Crude Overhead Vapor,12.750,420,380,ASTM A106 Grade B,20000,1.00,0.40,0.0625,0.375,ASME B31.3-2022
+8-PMP-4002-A1A,Feed Pump Discharge,8.625,480,350,ASTM A106 Grade B,20000,1.00,0.40,0.0625,0.322,ASME B31.3-2022
+16-VAP-4003-B2A,Tower Flash Vapor,16.000,310,420,ASTM A335 Grade P11,18500,1.00,0.40,0.1250,0.500,ASME B31.3-2022
+6-DRN-4004-C1A,Heavy Ends Bottom Drain,6.625,250,510,ASTM A106 Grade B,17300,1.00,0.40,0.1250,0.280,ASME B31.3-2022

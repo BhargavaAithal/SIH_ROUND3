@@ -1,104 +1,158 @@
-# Product Requirements Document (PRD) — Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)
+# Product Requirements Document (PRD) — SMITRACE
 
-> **Repository**: [https://github.com/VINYASGM/smitrace](https://github.com/VINYASGM/smitrace)  
-> **Authoritative Companion**: [`Architecture.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/Architecture.md) | [`docs/product/PRD.md`](file:///c:/Users/Vinyas%20G%20M/OneDrive/Desktop/SIH/docs/product/PRD.md)
+## Project: Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)
 
-## 1. Executive Summary
-The **Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)** is an on-premises, network-isolated engineering platform engineered for regulated Public Sector Undertakings (PSUs), refineries, critical process plants, defense manufacturing units (DPSUs), and government facilities. It enables plant engineers and inspection authorities to automate complex industrial documentation, structural calculations against ASME/API codes, P&ID diagram parsing, and report synthesis without exposing enterprise data beyond physical network perimeters.
+---
 
-Crucially, SMITRACE establishes **Zero-Trust, Non-Repudiable Legal Provenance (DPDP Act 2023 §8 / ITAR / DGMS Circulars)**. It eliminates reliance on probabilistic LLM assertions, mathematically preventing AI hallucinations from causing physical plant rupture, catastrophic vessel overpressurization, or un-audited Permitted-to-Work (PTW) safety breaches.
+### 1. Executive Summary & Problem Statement
 
-## 2. Regulatory Background & Market Need
-- **Statutory Auditability & Non-Repudiation**: Under Section 8 of the Digital Personal Data Protection (DPDP) Act 2023, Directorate General of Mines Safety (DGMS) Technical Circulars, and ITAR compliance directives, automated recommendations are legally inadmissible unless backed by deterministic mathematical verification and an immutable, cryptographically sealed chain of custody.
-- **Physical Safety Invariants**: In hydrocarbon refineries, chemical plants, and defense facilities, accepting an unverified calculation or hallucinated wall thickness can lead to catastrophic physical pipe rupture, fatal toxic release, or boiler explosions.
-- **Operational Reality**: Air-gapped plants (SCADA/DCS) have zero WAN connectivity. Commercial cloud LLMs are legally and physically unusable in these environments.
-- **Product Defensibility**: Form-factor optimized as a turnkey appliance for defense integrators (BEL, L&T, Tata Advanced Systems) and Government e-Marketplace (GeM) procurement.
+#### 1.1 Executive Summary
+SMITRACE is an air-gapped, sovereign, neurosymbolic AI execution plane and industrial engineering workbench designed for high-consequence critical infrastructure, defense installations, and Public Sector Undertakings (PSUs) such as refineries, petrochemical complexes, and power generation facilities.
 
-## 3. Key User Personas
-1. **Refinery / PSU Mechanical Integrity Engineer**: Needs to evaluate multi-variable constraint envelopes (MAWP, corrosion rates, temperature deratings) across piping, storage tanks, and pressure vessels.
-2. **Plant Inspection & QA Manager**: Needs to convert scanned ultrasonic thickness (UT) inspection sheets into official board-ready PSU approval notes.
-3. **P&ID & Systems Draftsman**: Needs to parse scanned isometric prints and P&IDs into queryable component/connectivity graphs without manual redrawing.
-4. **Statutory Safety & Compliance Inspector (DGMS / Regulatory Audit)**: Demands court-admissible proof of zero outbound network egress, deterministic verification traces, and an immutable SHA-256 Merkle audit trail for every Permitted-to-Work issuance.
+Departing from rigid, single-model linear pipelines and ungrounded conversational loops, SMITRACE establishes a **multi-model, user-governed, agentic execution architecture** across four decoupled planes:
+1. **Intelligence Plane (Probabilistic)**: Employs a dynamic Model Gateway and declarative registry supporting multiple open-weight models (coding, reasoning, vision, summarization) without lock-in.
+2. **Execution Plane (Deterministic)**: Executes tools and untrusted code via a policy-controlled Execution Broker, OS sandboxes, and typed deliverable compilers (Word, PowerPoint, Excel, runnable code).
+3. **Assurance Plane (Deterministic)**: Enforces AST security visitors, statutory codes, and formal Z3 SMT theorem proofs to guarantee an exact **0.0% False Assurance Rate (FAR)**.
+4. **State & Provenance Plane (Deterministic Control Plane)**: An append-only, event-sourced ledger managing atomic leases, DAG scheduling, and versioned document provenance with 100% air-gap compliance.
 
-## 4. Functional Requirements
+#### 1.2 Problem Statement
+1. **Model Lock-in & Rapidly Evolving Open-Weight Ecosystem**: Hardcoding inference to a single model prevents adoption of specialized models (e.g. dedicated coding models vs reasoning models vs vision-language models) and blocks upgrading as open-weight state-of-the-art advances.
+2. **Lack of True Agentic Flexibility**: Rigid pipelines (e.g. fixed ingestion-to-Word generation) fail when users require exploratory, multi-turn, or customized tasks where intermediate layers should be pruned, customized, or reordered.
+3. **Catastrophic Hallucination & Arithmetic Drift**: In high-pressure piping, pressure vessels, and tanks, approximate LLM math can cause plant overpressurization, toxic release, or explosive rupture.
+4. **Regulatory & Statutory Inadmissibility**: Under OISD standards (OISD-STD-105, OISD-RP-108), PESO SMPV Rules 2016, Factories Act 1948 §31, and NCIIPC guidelines under IT Act 2000 §70, ungrounded conversational outputs cannot legally justify PTW certifications, statutory FFS approvals, or capital maintenance authorizations.
+5. **Complex Multi-Modal Real-World Artifacts**: Real industrial sites handle degraded scanned PDFs, handwritten maintenance logs, P&ID engineering drawings, and equipment field photos that defeat simple text LLMs.
+6. **Air-Gapped Enterprise Knowledge Grounding**: Plant decisions must strictly align with internal manuals, SOPs, and past correspondence without a single byte exfiltrating over external networks.
 
-### FR-1: Multimodal Asset Ingestion & Spatial Parsing (R2) (**COMPLETED & VERIFIED**)
-- Ingest scanned PDFs, micro-text forms, handwritten log sheets, and high-res P&ID schematics (up to 4000x3000 resolution).
-- **Tiled Sliding Window Patching (`patcher.py`)**: Slices drawings into uniform $1024 \times 1024$ tiles with $256\text{px}$ overlap, employing boundary stride-shifting (`edge_mode="shift"`) to eliminate margin clipping, paired with cross-patch IoU Non-Maximum Suppression (NMS).
-- **Aggressive Pre-Skeletonization Gap-Bridging (`skeletonizer.py` / `bridge_drawing_gaps`)**: Employs directional morphological closing ($1 \times 7$ and $7 \times 1$) to bridge broken lines without blurring parallel pipes, and Probabilistic Hough Transform (`cv2.HoughLinesP`) to reconnect collinear line gaps up to $15\text{px}$ in dashed instrumentation/electrical lines.
-- **Vectorized Morphological Thinning (`skeletonizer.py`)**: Pure NumPy parallel thinning (`_zhang_suen_pure_numpy`) preserving strict 1-pixel line connectivity, evaluating the Rutovitz Crossing Number invariant ($CN=1$ endpoint, $CN=2$ line, $CN\ge 3$ junction), 8-connected junction clustering, and RDP polyline simplification.
-- **KD-Tree Geometric Snapping Tolerances (`graph_builder.py`)**: Spatial `cKDTree` index enforcing a strict **$40\text{px}$ snapping radius** with orthogonal projection snapping to pipe polyline vectors.
-- **ISA-5.1 Regex Tag Repair & Pipe Attributes**: Regex parsing with OCR noise repair (`repair_ocr_tag`), extracting outside diameter ($D$), design pressure ($P$), and thickness ($t_{\text{act}}$) into dual queryable NetworkX graphs (`nx.Graph` and `nx.DiGraph`).
+---
 
-### FR-2: Neurosymbolic Verification via Multi-Variable Constraint Envelopes (R1 & R3) (**COMPLETED & VERIFIED**)
-- Execute generated Python calculation scripts within ephemeral `nsjail`/`gVisor` sandboxes (`--network none`, 512MB RAM, 10s timeout, zero WAN egress).
-- **Z3 Multi-Variable SMT Constraint Envelopes (First-Order Non-Linear Real Arithmetic QF_NRA)**:
-  - Formulates simultaneous safety bounds for Maximum Allowable Working Pressure (MAWP) across coupled service aging $t$, corrosion rates $c_r$, temperature-dependent material stress deratings $S(T)$, mechanical allowances $c$, and weld joint efficiencies $E$:
-    $$\Phi_{\text{MAWP}} = \left( P \le \frac{2 \cdot S(T) \cdot E \cdot (t_0 - c_r \cdot t_{\text{service}} - c)}{D - 2 \cdot Y \cdot (t_0 - c_r \cdot t_{\text{service}} - c)} \right) \land \left( S(T) = f_{\text{derate}}(T) \right) \land \left( t_{\text{act}} - c_r \cdot t_{\text{service}} \ge t_{\text{min}} \right)$$
-  - Solves for exact multi-dimensional boundary polytopes using Cylindrical Algebraic Decomposition (CAD) and NLSat where analytical algebraic inversion is non-trivial.
-  - Multi-standard cross-verification: ASME B31.3 piping, API 510 pressure vessels, API 650 atmospheric storage tanks, API 520/521 relief valves, and AWS D1.1 structural welds.
-- **0.0% False Assurance Rate (FAR)**: Guarantees 0.0% FAR across 2,200 property-based adversarial trials. On solver timeout ($\ge 5.0\text{s}$), the system strictly emits `FAIL (SMT_TIMEOUT)` with zero unverified floating-point fallbacks.
+### 2. Target Personas & Operational Context
 
-### FR-3: State-Isolated Anti-Collapse Self-Correction (R4) (**COMPLETED & VERIFIED**)
-- Implement a 3-turn ReAct repair loop for generated script failures (`run_react_loop`).
-- Memory isolation: Decouple `ImmutableSpec`, mutable script state, and SHA-256 rejected failure hashes.
-- Prevent cognitive collapse through clean-context re-prompting and duplicate error hash stall detection with <= 3 turns convergence.
+| Persona | Role & Responsibilities | Core Pain Points Addressed |
+| :--- | :--- | :--- |
+| **Plant Integrity Engineer** | Evaluates piping circuits, calculates remaining lifespans, verifies ASME B31.3 / API 510 code compliance, signs off on inspection reports. | Replaces manual formula errors with formal SMT proofs; automates report and multi-tab spreadsheet generation; prunes unnecessary pipeline steps. |
+| **Refinery Safety Inspector (NDT)** | Collects ultrasonic thickness data at Condition Monitoring Locations (CMLs), maps corrosion trends, monitors thinning rates. | Ingests multi-modal scanned logs, handwritten notes, and drawings into a structured representation; tracks multi-year surveys. |
+| **PSU Executive / Plant General Manager** | Approves capital maintenance budgets, reviews executive board memos, certifies statutory compliance (OISD / PESO / Factories Act). | Receives 100% compliant ISO/IEC 29500 (.docx/.xlsx) memos, .pptx executive slide decks with digital sign-offs and zero corruption. |
+| **Maintenance & Operations Planner** | Schedules plant turnarounds, cross-references internal SOPs and historical correspondence for equipment failure precedents. | Interactively searches air-gapped organizational knowledge base with exact chunk provenance and citations. |
+| **Statutory / Forensic Auditor** | Investigates incident root causes, audits historical PTW authorizations, verifies cryptographic non-repudiation. | Audits an append-only SHA-256 Merkle event ledger proving byte-for-byte execution history from genesis to tip with zero WAN egress. |
 
-### FR-4: Headless Enterprise Deliverable Engine (R5) (**COMPLETED & VERIFIED**)
-- Directly generate native corporate PSU approval notes (`.docx`) and multi-tab audited workbooks (`.xlsx`) without MS Office runtime or markdown breakage.
-- Populate pre-baked PSU enterprise templates with official headers, metadata grids, formulas, citations, and digital sign-off blocks. 100% valid ISO/IEC 29500 OOXML packaging.
+---
 
-### FR-5: Sovereignty & Air-Gap Telemetry (R1) (**COMPLETED & VERIFIED**)
-- Real-time air-gap audit telemetry backed by `audit_network_egress()` and socket guard probes mathematically proving 0 WAN packets transferred.
-- Default outbound WAN packet dropping with strict zero-egress enforcement verified across all pipeline execution steps.
+### 3. Core Architectural Capabilities
 
-### FR-6: Headless High-Security API & Offline PKI Access Control (**SETTLED DESIGN**)
-- High-security Unix service architecture exposing local mTLS API and embedded console restricted strictly to localhost.
-- Offline Role-Based Access Control (RBAC) enforced via Hardware Token / Local PKI (YubiKey / PIV SmartCard x509 client certificates verified via local OpenSSL CA).
+#### 3.1 Pluggable Model Gateway & Declarative Registry
+- The system must not be locked to any single model.
+- Supports heterogeneous local open-weight models running concurrently across vLLM, llama.cpp, in-process ONNX, and local HTTP endpoints.
+- **Contract-First Decision Pipeline (`Laya Decision -> Canonical Decision Schema -> Capability Registry -> Deterministic Policy`)**:
+  - **Identical Decision Contract**: In-process ONNX (`laya-modernbert-onnx`, `laya-mmbert-onnx`) and Local HTTP (`laya-modernbert-http`) backends expose the identical decision contract, returning normalized `CanonicalDecision` objects with discrete primitives (choice distributions, ordinal scores, boolean probability) in <15ms.
+  - **Deterministic Policy Enforcement**: Raw decision model outputs pass through the Capability Registry and a Deterministic Policy Gate (enforcing statutory safety, step pruning, and $P \ge 0.75$ confidence) before granting execution leases.
+  - **System 2 Escalation**: If confidence falls below 0.75 or multi-step DAG planning is required, requests escalate to deep reasoning specialists (`llama-3.3-70b-instruct-q4` or `qwen-2.5-14b-instruct-awq`).
+- New models can be added dynamically via a declarative configuration file (`config/models.yaml`) without modifying or recompiling backend code.
 
-### FR-7: Zero-Thrashing Inference Architecture & Dedicated Vision Backbone (**SETTLED DESIGN**)
-- **Elimination of Cross-PCIe Model Thrashing**: Replaces heavy dynamic multi-modal swapping with a dedicated, lightweight CPU/TensorRT vision pipeline (YOLO-v8 ONNX for symbols/valves + PaddleOCR v4 ONNX for text, <1.2GB) alongside a **single permanently hard-pinned 14B reasoning specialist** (`Qwen-2.5-14B-Instruct` AWQ or `SMITRACE-Sovereign-14B-v1`).
-- Total static VRAM footprint is fixed at <11GB on a 24GB card, reserving >12GB for dynamic vLLM PagedAttention KV-cache pools with 0 PCIe bus swapping stalls.
+#### 3.2 Plan-First, User-Governed Agent Engine
+- Decomposes user goals into an explicit, versioned Work Unit DAG complete with task dependencies, tool bindings, and expected deliverables.
+- **User Intervention Gate**: Before or during execution, users can inspect the DAG, deselect/prune unnecessary intermediate layers, adjust parameters, or reorder steps.
+- **Iterative Tool Execution**: Agents invoke local tools (`file_read`, `file_write`, `code_execution`, `spreadsheet_work`, `knowledge_search`, `math_solve`), evaluating intermediate outputs and iterating upon partial failures.
+- **Dynamic Replanning**: When unexpected tool outputs or solver counterexamples occur, the agent invalidates dependent child nodes and proposes an updated sub-plan without full pipeline restarts.
 
-### FR-8: Work Unit DAG Generalizability & Dynamic Capability Grammar Boundary (**SETTLED DESIGN**)
-- Proves the multi-discipline generalizability of the Work Unit DAG beyond single pipe calculations:
-  - **Process Piping (ASME B31.3)**: `PROVE_SMT_ENVELOPE` + `EXECUTE_NUMERICAL_SCRIPT`
-  - **Storage Tanks (API 650 / 620)**: `EXECUTE_NUMERICAL_SCRIPT` + `PROVE_SMT_ENVELOPE`
-  - **Pressure Vessels (API 510 / ASME VIII)**: `PROVE_SMT_ENVELOPE` + `EXECUTE_NUMERICAL_SCRIPT`
-  - **Relief Systems (API 520 / 521)**: `EXECUTE_NUMERICAL_SCRIPT` + `PROVE_SMT_ENVELOPE`
-  - **Fabrication & Welds (AWS D1.1 / ISO 13703)**: `QUERY_SPATIAL_TOPOLOGY` + `PROVE_SMT_ENVELOPE`
-- Enforces declarative capability proposal schemas, static `CapabilityRegistry` resolution, and privilege dropping inside ephemeral sandboxes.
+#### 3.3 Modality-Aware Multimodal Ingestion Fabric
+- Ingests scanned PDFs, handwritten inspection logs, engineering drawings (P&IDs, isometrics), and field photographs.
+- **Manual Ingestion & Enclave Vault Sealing**: Supports direct user-driven manual ingestion via native OS file browsing and drag-and-drop from local filesystem folders (e.g. `sample_inputs/piping/` and `sample_inputs/codebase/`) alongside baseline pre-mounted statutory documents.
+- Computes genuine client-side SHA-256 Merkle leaf digests for all uploaded artifacts with guaranteed 0 WAN network egress.
+- Quality preprocessor handles DPI normalization, deskewing, and contrast adjustment.
+- Policy-driven router dispatches regions to specialized local engines: PaddleOCR/Surya for dense tables, TrOCR for handwriting, OpenCV/spatial vectorizers for drawing lines and symbols, and local VLMs for photos.
+- Normalizes extracted visual data into a standardized Multimodal Intermediate Representation (MIR) capturing geometry, confidence, and coordinate provenance.
 
-### FR-9: Control Plane Concurrency, Autonomous Lease Recovery & Statutory Auditability (Milestone 15 / ADR 07) (**SETTLED DESIGN**)
-- **Statutory Auditability Framing**: All resilience mechanisms are presented strictly as **Zero-Trust, Non-Repudiable Legal Provenance (DPDP Act 2023 §8 / ITAR / DGMS)**:
-  1. **Dedicated Serialized SQLite WAL Writer Actor (Q1 & Q7)**: Serializes all mutations through a single-writer FIFO queue executing `BEGIN IMMEDIATE` transactions. Mutating callers block on a synchronous `threading.Event` barrier (5.0s timeout), guaranteeing linear, fork-free SHA-256 Merkle chaining and eliminating uncommitted HTTP 200 responses.
-  2. **60s Timed Leases & Autonomous Watchdog Reaper (Q2)**: Worker leases enforce a 60-second TTL backed by 15-second heartbeats. A background sweeper running every 10 seconds sweeps abandoned/crashed tasks back to `READY` and increments `retry_count`. Tasks exceeding 3 retries escalate to `WAITING_HUMAN` to prevent zombie workers from corrupting active Permitted-to-Work (PTW) workflows.
-  3. **Two-Phase Ephemeral Staging with Atomic Commit (Q3 & Q9)**: Uncommitted artifacts write to `staging/{lease_id}/`. Promotion to `cases/{case_id}/` via $O(1)$ `os.replace` occurs strictly *after* formal SMT verification passes; failed candidate directories are purged, ensuring zero draft deliverable leakage.
-  4. **Process-Isolated Assurance Pool (Q4 & Q10)**: Z3 SMT proofs execute inside an isolated subprocess pool bounded by a 5.0-second hard kill switch, blocking Algorithmic Solver DoS attacks and enforcing 0.0% FAR.
-  5. **Cold-Boot Genesis-to-Tip Replay (Q5)**: On cold daemon startup, the system validates SHA-256 hash continuity from block 0, sweeps orphaned leases, and deterministically reconstructs projections.
-  6. **Surgical DAG Branch Suspension (Q6)**: Failure of an isolated work unit transitions only its direct downstream dependents to `BLOCKED`. Independent parallel branches continue executing uninterrupted.
-  7. **Statutory Human Overrides (Q8)**: Operator interventions require an immutable `HUMAN_OVERRIDE` event containing `operator_id`, resolution mode, physical justification ($\ge 20$ characters), and an HMAC-SHA256 signature, fixing personal legal accountability.
+#### 3.4 Real Multi-Format Deliverables
+- Compiles production deliverables rather than conversational chat snippets:
+  - **Approval Notes & Executive Memos**: Binary ISO/IEC 29500 `.docx` files with corporate PSU styling, tabular metadata, and digital sign-off blocks.
+  - **Executive Slide Decks**: Native `.pptx` presentations summarizing engineering findings, risk matrices, and topology schematics.
+  - **Audit Workbooks**: Multi-tab `.xlsx` spreadsheets preserving active, recalculable formulas and 16-decimal-place precision.
+  - **Working Runnable Code**: Validated Python/Rust scripts with explicit execution traces.
+  - **Mathematical Proofs**: Step-by-step arithmetic derivations alongside Z3 SMT-LIB2 verification transcripts.
 
-### FR-10: Industrial Workbench Tabbed React SPA & Discreet Status Bar (R6 / M7) (**COMPLETED & VERIFIED**)
-- Four tabbed viewports: P&ID Viewer, Calculation Sandbox, Z3 Formal Audit, and Deliverables Preview.
-- Docked 24px Engineering Status Bar (`StatusBar.jsx`) running unobtrusively in the background, showing real-time `127.0.0.1` loopback enforcement, sandbox isolation, and an on-demand audit trigger.
-- Runtime Egress & Air-Gap Audit modal scanning live `psutil` sockets confirming 0 WAN outbound bytes and deterministic SHA-256 integrity hash.
+#### 3.5 Versioned Provenance-Aware Local Knowledge Fabric
+- Connects to internal enterprise manuals, SOPs, past correspondence, and engineering standards.
+- Operates 100% offline with zero cloud telemetry or external API calls.
+- Tri-Index Retrieval combines exact lexical keyword matching (Tantivy/FTS5), dense semantic search (local embeddings), and metadata taxonomies.
+- Cryptographic Provenance Graph binds every fact and citation to source file path, revision, page number, section header, and SHA-256 chunk hash.
 
-### FR-11: Presentation-Ready Demonstration Suite & Multi-Scenario Switcher (R7 / M9) (**COMPLETED & VERIFIED**)
-- Dedicated `PresenterBar` positioned below header providing 1-click toggling between three full-fidelity plant states:
-  1. Normal Operating Baseline (`16"-P-101-CS-150`): Full compliance, +2.49 mm margin, SAT verdict.
-  2. Critical Pipe Thinning Hazard (`12"-P-105-CS-150`): -0.65 mm deficit below statutory minimum, UNSAT verdict, Z3 formal safety gate halts execution and blocks hazardous work permits.
-  3. High Pressure Surge Anomaly (`10"-P-103-CS-300`): SCADA transient overpressure spike to 650 psig, triggering ReAct agent self-correction loop and relief valve PRV-202 set-point recalibration.
+#### 3.6 Brokered Sandboxed Execution & Hardware Adaptability Principle
+- **Hardware Adaptability Principle**: *SMITRACE adapts to hardware, rather than hardware becoming part of SMITRACE's identity.* Hardware resources are dynamic operational constraints detected by the `HardwareProfiler` and managed by the `ModelGateway`.
+- All untrusted code execution and artifact generation is brokered through a strict policy gate enforcing CPU, RAM, disk, process, and network isolation.
+- Dispatches jobs to specialized workers: Code Worker (ephemeral OS sandbox), Calculation Worker (deterministic math/SMT runtime), and Artifact Worker (typed OpenXML compilers).
+- Hardware Profiler automatically senses available CPU, RAM, and GPU VRAM at boot, dynamically scaling across hardware profiles:
+  - **24 GB Profile**: 7B/14B quantized models (AWQ/GGUF), local sequential or time-shared inference, baseline context window.
+  - **48 GB Profile**: Larger reasoning & VLM models (32B/70B Q4), higher context window (32K–64K tokens), higher worker concurrency.
+  - **Multi-GPU Profile**: Model parallelism, concurrent model fleet, dedicated parallel reasoning, vision, and embedding workers.
 
-### FR-12: 4-Beat Sovereign Inspection Pipeline (Dump → Vault → Deterministic Analysis → Payoff) (M11) (**COMPLETED & VERIFIED**)
-- Executive progressive disclosure: Beat 1 (Deposit 6 authentic files) ➔ Beat 2 (Cryptographic Vault Sealing & Case ID) ➔ Beat 3 (Deterministic SMT Verification checklist) ➔ Beat 4 (Deliverable Payoff with slide-out Mathematical Proof & Engineering Standards drawer).
 
-## 5. Quantitative Success Metrics & Invariants
-- **Statutory Non-Repudiation**: 100% linear SHA-256 Merkle event chain adhering to DPDP Act 2023 §8 and DGMS circulars.
-- **False Assurance Rate (FAR)**: Strictly 0.0% (Z3 SMT blocks all non-compliant calculations; zero float fallbacks).
-- **Zero Egress Rate**: 100% physically verified (0 WAN bytes).
-- **Concurrency & Non-Repudiation**: 0 SQLite locking errors (`SQLITE_BUSY`) under 50 concurrent worker threads via dedicated single-writer actor.
-- **Crash Recovery Latency**: <10s orphan lease sweep and reclamation.
-- **Candidate Leakage Rate**: 0.0% (ephemeral staging sandbox isolates candidate outputs until formal SMT pass).
-- **Zero PCIe Model Thrashing**: Dedicated vision backbone (<1.2GB) + hard-pinned 14B reasoning model (<11GB static VRAM footprint).
-- **Single 24GB GPU Latency**: Sub-100ms model multiplexing, sub-second TTFT.
+---
+
+### 4. Functional Requirements
+
+#### FR-1: Model Gateway & Dynamic Capability Routing
+* **FR-1.1**: The system must provide a Model Gateway that dispatches prompts to local inference endpoints based on task intent (`coding`, `reasoning`, `vision`, `summarization`).
+* **FR-1.2**: Adding, modifying, or disabling models must be supported via a declarative YAML registry (`models.yaml`) without requiring software recompilation.
+* **FR-1.3**: The Model Gateway must track endpoint health, latency, context usage, and automatic failover across redundant local backends.
+
+#### FR-2: Goal-Driven Agent Planning & User Intervention Gate
+* **FR-2.1**: The Plan Engine must generate a versioned execution DAG of typed Work Units with explicit dependencies, tool bindings, and expected outputs.
+* **FR-2.2**: The workbench UI must render the proposed DAG and permit users to toggle/prune intermediate steps (e.g. skip OCR, omit SMT verification, or suppress PPTX generation) prior to execution.
+* **FR-2.3**: The agent execution loop must evaluate tool outputs iteratively and propose replanning when downstream assumptions are invalidated.
+* **FR-2.4**: Sibling branches unaffected by replanning or user modifications must remain committed (Sibling Protection Guarantee).
+
+#### FR-3: Multimodal Ingestion & MIR Standardization
+* **FR-3.1**: Ingests raster drawings, scanned PDFs, handwritten logs, and equipment photos without sending data outside the local host.
+* **FR-3.2**: Employs a modality classifier and policy router to dispatch inputs to specialized local engines (OCR, handwriting, CAD thinning, VLM).
+* **FR-3.3**: Serializes visual extractions into a standardized Multimodal Intermediate Representation (MIR) schema tracking text, bounding boxes, spatial connectivity, and confidence scores.
+
+#### FR-4: Air-Gapped Enterprise Knowledge Fabric
+* **FR-4.1**: Provides local connectors for internal manuals, SOPs, past correspondence (PST/EML/Mbox), and P&ID archives.
+* **FR-4.2**: Implements a Tri-Index combining in-process lexical search (Tantivy), dense vector embeddings, and hierarchical metadata filtering.
+* **FR-4.3**: Enforces exact citation tracking where every generated statement is grounded by document name, revision, page number, and SHA-256 chunk hash.
+
+#### FR-5: Brokered Sandbox Execution & Native Deliverable Compilers
+* **FR-5.1**: All code execution requests must be brokered through an authorization gate enforcing CPU, RAM, and network boundaries (`--network none`).
+* **FR-5.2**: Compiles native `.docx` memos, `.pptx` briefing decks, and `.xlsx` workbooks directly from typed schemas with live Excel formulas and step-by-step math traces.
+* **FR-5.3**: Validates generated OOXML archives via internal ZIP traversal prior to vault commitment.
+
+#### FR-6: Neurosymbolic Formal SMT Verification
+* **FR-6.1**: Encodes statutory engineering codes (ASME B31.3 §304.1.2, API 510 §7.1, API 650, API 520) into Z3 SMT First-Order Non-Linear Real Arithmetic (`QF_NRA`).
+* **FR-6.2**: Enforces an exact **0.0% False Assurance Rate (FAR)** where timeouts ($\ge 5.0\text{s}$) or arithmetic anomalies strictly resolve to `FAIL`.
+
+#### FR-7: Hardware-Adaptive Profile Discovery & Scheduling
+* **FR-7.1**: The system must enforce the Hardware Adaptability Principle: adapting model selection, concurrency, and context limits to detected hardware constraints, without hardware becoming part of SMITRACE's identity.
+* **FR-7.2**: The Hardware Profiler must detect host CPU, RAM, and GPU VRAM at launch, activating the 24GB, 48GB, or Multi-GPU profile:
+  - *24 GB*: 7B/14B quantized models, local inference, baseline context.
+  - *48 GB*: 32B/70B models, higher context window (32K–64K tokens), higher worker concurrency.
+  - *Multi-GPU*: Model parallelism, concurrent model fleet (dedicated reasoning + vision + embedding workers).
+* **FR-7.3**: The Resource Scheduler must adjust batching, KV-cache allocations, and concurrent worker pools based on the detected hardware profile.
+
+
+#### FR-8: Sovereign Air-Gap Security & Cryptographic Ledger
+* **FR-8.1**: Enforces default drop firewall rules (`nftables`) with kernel-level eBPF Tetragon audits asserting 0 outbound WAN packets.
+* **FR-8.2**: Records all events, tool calls, and user interventions in an encrypted SQLite WAL Merkle log with SHA-256 hash chaining.
+
+---
+
+### 5. Statutory & Regulatory Compliance Specifications
+
+1. **Oil Industry Safety Directorate (OISD) & PESO Statutory Mandates**:
+   - Adheres to OISD-STD-105 (Work Permit System), OISD-RP-108 (Inspection of Piping Systems), and OISD-STD-129 (Storage Tanks).
+   - Complies with Petroleum Rules 2002, SMPV Rules 2016, and Factories Act 1948 §31 requiring deterministic calculation verification for high-pressure equipment.
+2. **Critical Information Infrastructure (CII) & NCIIPC / IT Act 2000 §70**:
+   - Strictly isolates plant engineering networks from public WANs and external cloud APIs.
+   - Enforces cryptographic non-repudiation on human overrides with operator ID, statutory justification, and HMAC-SHA256 digital signatures.
+3. **Industrial Cybersecurity & Air-Gap Standards (IEC 62443 SL-3 / SL-4)**:
+   - Zero outbound network traffic verified at the kernel layer, protecting proprietary process flows and plant schematics.
+
+---
+
+### 6. Non-Functional Requirements (NFRs)
+
+* **NFR-1 (Mathematical Rigor)**: Exact 0.0% False Assurance Rate on statutory safety verifications.
+* **NFR-2 (Extensibility)**: Zero-recompilation model onboarding via declarative YAML registry.
+* **NFR-3 (Adaptability)**: Seamless execution across Minimum (8-16GB VRAM), Standard (24-48GB VRAM), and High-End (80GB+ VRAM) hardware profiles.
+* **NFR-4 (Isolation)**: Sandboxed code execution with zero network access, memory quotas (512MB default), and 10s CPU limits.
+* **NFR-5 (Air-Gap Sovereignty)**: 0 outbound WAN packets guaranteed by `nftables` and verified by eBPF telemetry.
+* **NFR-6 (Document Fidelity)**: Native ISO/IEC 29500 binary archives passing automated schema and formula integrity tests.

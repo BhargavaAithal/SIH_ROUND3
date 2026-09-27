@@ -1,0 +1,30 @@
+version: "1.0"
+name: "smitrace-coder-eval"
+description: "Continuous evaluation benchmark suite for Antigravity skills, semantic routing, and safety guardrails"
+
+thresholds:
+  min_weighted_score: 0.85
+  require_skill_triggered: true
+  max_tokens_per_task: 12000
+  max_tool_calls_per_task: 15
+
+suites:
+  - id: "skill-routing"
+    file: "evals/tasks/skill-routing.yml"
+    name: "Semantic Skill Routing & Progressive Disclosure"
+    weight: 0.35
+
+  - id: "code-generation"
+    file: "evals/tasks/code-generation.yml"
+    name: "Code Generation Accuracy, AST Integrity & Guardrails"
+    weight: 0.45
+
+  - id: "ab-experiments"
+    file: "evals/tasks/ab-experiments.yml"
+    name: "A/B Persona & Rule Experimentation"
+    weight: 0.20
+
+reporting:
+  json_output: "evals/results/report.json"
+  markdown_summary: "evals/results/summary.md"
+  fail_on_regression: true

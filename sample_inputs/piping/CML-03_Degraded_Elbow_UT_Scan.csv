@@ -1,0 +1,26 @@
+# REFINERY CRITICAL CORROSION MONITORING LOG (CML)
+# Survey Type: Ultrasonic Thickness (UT) Grid Scan
+# Equipment Tag: 12-OH-4001-A1A (Circuit 400)
+# Description: 90 Deg Long Radius Elbow - Crude Overhead Line
+# Material: ASTM A106 Grade B Carbon Steel
+# Nominal Outside Diameter (D): 12.750 in
+# Nominal Wall Thickness (t_nom): 0.375 in (Schedule 40)
+# Design Pressure (P): 420 psig
+# Design Temperature (T): 380 deg F
+# Allowable Stress (S): 20000 psi
+# Joint Quality Factor (E): 1.00
+# Temperature Coefficient (Y): 0.40
+# Corrosion Allowance (c): 0.0625 in
+# Statutory Requirement: ASME B31.3 Section 304.1.2
+# Minimum Required Wall Thickness (t_min): 0.2410 in
+# Survey Date: 2026-09-24
+# Operator ID: NDT-LEVEL-II-TECH-882
+Grid_Point,Circumferential_Angle_Deg,Measured_Thickness_in,Nominal_Thickness_in,Required_t_min_in,Statutory_Status,Corrosion_Rate_mpy
+P1_Extrados_Inlet,90,0.184,0.375,0.241,VIOLATION_BELOW_TMIN,28.4
+P2_Extrados_Crown,90,0.178,0.375,0.241,VIOLATION_BELOW_TMIN,29.3
+P3_Extrados_Outlet,90,0.181,0.375,0.241,VIOLATION_BELOW_TMIN,28.9
+P4_Crown_North,0,0.215,0.375,0.241,MARGINAL_BELOW_TMIN,23.8
+P5_Intrados_Inlet,270,0.248,0.375,0.241,ACCEPTABLE_ABOVE_TMIN,18.9
+P6_Intrados_Crown,270,0.245,0.375,0.241,ACCEPTABLE_ABOVE_TMIN,19.4
+P7_Cheek_East,45,0.260,0.375,0.241,ACCEPTABLE_ABOVE_TMIN,17.1
+P8_Cheek_West,315,0.258,0.375,0.241,ACCEPTABLE_ABOVE_TMIN,17.4

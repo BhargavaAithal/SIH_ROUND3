@@ -1,107 +1,153 @@
-# Context — Sovereign AI Execution Plane & Industrial Workbench (SMITRACE)
+# Context & Environment Metadata — SMITRACE
 
-> **Repository**: [https://github.com/VINYASGM/smitrace](https://github.com/VINYASGM/smitrace)
+## 1. Operating Environment
+* **Project Name**: SMITRACE (Sovereign AI Execution Plane & Industrial Workbench)
+* **Backend Runtime**: Pure Rust 1.80+ (Axum + Tokio, static musl ELF target)
+* **OS**: Windows 11 Home Single Language (Build 26100) & Linux Edge Target (Ubuntu 22.04 / RHEL 9)
+* **Shell**: PowerShell (`powershell.exe`) & Windows Command Processor (`cmd.exe`)
+* **Rust**: Rust 1.80+ (`cargo`, `rustc`, `clippy`, `rustfmt`)
+* **Node.js**: Modern LTS runtime supporting ES modules and CommonJS
+* **Python**: Python 3.11+ 64-bit (used for ML vision models in isolated sandbox and hackathon scope)
+* **Version Control**: Git 2.47+ with GitHub CLI (`gh`)
+* **Workspace Directory**: `c:\Users\Vinyas G M\OneDrive\Desktop\smitrace`
+* **App Data Directory**: `C:\Users\Vinyas G M\.gemini\antigravity-ide`
+* **Customization Roots**:
+  - Global: `%USERPROFILE%\.gemini\config`
+  - Workspace: `.agents` and canonical `.agent/`
 
-## Executive Context & Domain
-This project defines the complete architecture, engineering design, and operational implementation for an **On-Premises, Network-Isolated Sovereign AI Execution Plane and Industrial Workbench (SMITRACE)**.
+---
 
-Target operational environments include:
-- Regulated Public Sector Undertakings (PSUs)
-- Oil refineries and petrochemical processing plants
-- Defence Production Units (DPSUs) & Critical Infrastructure Facilities
+## 2. Canonical Directory Structure Reference
 
-These facilities operate under strict statutory, contractual, and national security mandates (e.g., ITAR, NIS2, DPDP Act 2023, Indian Ministry of Finance AI directives) that strictly prohibit internal data from crossing enterprise network perimeters.
+```
+smitrace/
+├── PRD.md                      # Product Requirements Document (Pure Rust backend, 4 planes, 5 pillars)
+├── TRD.md                      # Technical Requirements Document (Model Gateway, MIR, Tri-Index, Z3)
+├── Architecture.md             # System Architecture Document (5 pillars, hardware-agnostic deployment)
+├── ToDo.md                     # Phased development roadmap across 10 milestones
+├── State.md                    # Real-time project status overview & active metrics
+├── context.md                  # Runtime environment metadata & active domain standards
+├── AGENTS.md                   # Three-Layer Master Directive (Directive, Orchestration, Execution)
+├── MEMORY.md                   # State persistence substrate (survives 135k context compaction)
+├── GEMINI.md                   # Knowledge substrate invariants & anti-hallucination policies
+├── mcp_config.json             # Model Context Protocol configuration
+├── eslint.config.mjs           # Flat ESLint configuration for CodeRabbit
+├── .coderabbit.yaml            # CodeRabbit assertiveness profile and audit rules
+├── .gitignore                  # Ignores node_modules, cache, and docs/architecture/
+├── package.json                # Project scripts (graphify, test, eval)
+│
+├── config/
+│   └── models.yaml             # Declarative Model Registry catalog (capabilities, endpoints, hardware)
+│
+├── hackathon-scope/            # Dedicated 3-Day Hackathon & Demo MVP Scope (Python FastAPI + React)
+│   ├── README.md               # Hackathon vs. Target Enterprise scope comparison guide
+│   ├── PRD.md                  # Hackathon Product Requirements Document
+│   ├── TRD.md                  # Hackathon Technical Requirements Document
+│   ├── Architecture.md         # Streamlined 4-Plane Hackathon Architecture
+│   └── ToDo.md                 # 3-Day Hackathon Actionable Roadmap
+│
+├── demo/                       # Interactive Sovereign AI Workbench Frontend Demo (React 18 + Vite)
+│   ├── index.html              # Outfit/Inter typography, sovereign metadata
+│   ├── package.json            # Vite + React dependencies
+│   └── src/
+│       ├── index.css           # Complete beige glassmorphic design system
+│       ├── App.jsx             # Main sovereign lifecycle coordinator
+│       └── components/
+│           ├── SplashScreen.jsx    # "Smitrace" bold header + "A sovereign AI work bench"
+│           ├── CryptoLogin.jsx     # Ed25519 cryptographic challenge-response
+│           ├── Header.jsx          # DCS/avionics instrument panel, semantic telemetry, operator identity drawer
+│           ├── PermittedVault.jsx  # Role-scoped vault & SHA-256 ingestion
+│           ├── PipelineScenario.jsx # Scenario 1: ASME B31.3 Z3 SMT proofs & reports
+│           ├── CodebaseScenario.jsx # Scenario 2: Sandbox pytest & agentic coding help
+│           └── AuditTerminalDock.jsx# Hierarchical session audit dock with zero-overflow flex scrolling
+│
+├── sample_inputs/              # Manual Ingestion Test Files & Datasets Suite
+│   ├── README.md               # User guide for live manual ingestion flow
+│   ├── piping/                 # Persona 1: Shiva (CML-03 Degraded Elbow, CML-01 Straight, Circuit 400 Line List)
+│   └── codebase/               # Persona 2: Eshwari (API 510 evaluator patch & boundary test suite)
+│
+├── .github/workflows/
+│   ├── coderabbit.yml          # Automated PR static & AI audit
+│   └── coder-eval.yml          # Continuous evaluation CI/CD quality gate
+│
+├── evals/                      # Coder-Eval Continuous Evaluation Infrastructure
+│   ├── coder-eval.config.yml   # Quality thresholds and evaluation configuration
+│   ├── tasks/                  # Declarative YAML evaluation suites
+│   │   ├── skill-routing.yml   # Semantic routing integrity (skill_triggered)
+│   │   ├── code-generation.yml # Code correctness, AST syntax & guardrails
+│   │   └── ab-experiments.yml  # A/B prompt & scoping benchmarks
+│   └── results/                # Evaluation output reports (report.json, summary.md)
+│
+├── .agent/ & .agents/          # Antigravity customization roots (mirrored for total parity)
+│   ├── hooks.json              # Authoritative lifecycle hook registration
+│   ├── rules/                  # Contextual rules with frontmatter glob targeting
+│   │   ├── frontend-react.md   # Scoped to frontend components and styles
+│   │   ├── backend-database.md # Scoped to backend services, SQL, and migrations
+│   │   ├── devops-ci.md        # Scoped to CI workflows, scripts, and Terraform
+│   │   └── knowledge-substrate.md # Scoped globally to enforce AST topology navigation
+│   ├── skills/                 # Semantic skills with progressive disclosure
+│   └── workflows/              # Multi-step process automations & slash commands
+│
+├── .antigravity/
+│   ├── graph.json              # Ground-truth AST dependency topology (120 nodes, 158 edges)
+│   ├── .cache/                 # Local syntax cache for modified files
+│   └── scripts/                # Hardened hook handlers
+│       ├── branch-guard.js     # Fail-closed branch locking
+│       ├── shell-sandbox.js    # Fail-closed PowerShell & shell sandbox
+│       ├── lint-enforcer.js    # Multi-language syntax verification
+│       ├── knowledge-injector.js # PreInvocation injection with mtime staleness check
+│       ├── open-pr-on-goal.js  # Injection-immune, goal-driven PR dispatcher
+│       └── parse-coderabbit-review.js # Injection-immune review comment parser
+│
+├── docs/
+│   ├── adr/                    # Formal Obsidian ADR vault (ADR-0001 - ADR-0017)
+│   │   ├── 0001-architecture-three-layer-directive-orchestration-execution.md
+│   │   ├── 0002-state-management-sqlite-event-sourcing.md
+│   │   ├── 0003-safety-guardrails-fail-closed-hooks.md
+│   │   ├── 0004-knowledge-substrate-ast-graph.md
+│   │   ├── 0005-behavioral-skills-suite.md
+│   │   ├── 0006-coderabbit-review-gates-remediation.md
+│   │   ├── 0007-continuous-evaluation-coder-eval.md
+│   │   ├── 0008-language-low-latency-edge-daemon-zero-copy-ipc.md
+│   │   ├── 0009-local-ai-inference-runtime-quantization-compound-routing.md
+│   │   ├── 0010-kernel-air-gap-sovereignty-hardware-security-micro-sandboxing.md
+│   │   ├── 0011-neurosymbolic-engine-smt-theorem-proving-anti-collapse.md
+│   │   ├── 0012-raster-to-graph-topology-reconstruction-spatial-engine.md
+│   │   ├── 0013-industrial-workbench-ui-ux-performance-mcp-integration.md
+│   │   ├── 0014-control-plane-concurrency-resilient-leases-staged-quarantining.md
+│   │   ├── 0015-dynamic-model-gateway-and-registry.md
+│   │   ├── 0016-user-governed-agentic-dag-planning.md
+│   │   ├── 0017-non-autoregressive-decision-model-laya.md
+│   │   └── README.md           # Master index of all 17 Architecture Decision Records
+│   └── architecture/           # Regenerable visual canvas & AST notes (gitignored)
+│
+└── tests/
+    └── test-hooks.js           # Automated verification test suite (41 / 41 tests passing)
+```
 
-## Language
+---
 
-**Control Plane**:
-The authoritative event-sourced coordinator governing state transitions, execution leases, and dual-graph schedulers.
-_Avoid_: Orchestrator, Master, Manager
+## 3. Active Domain Standards & Statutory Invariants
 
-**Work Unit**:
-An atomic schedulable execution task with declared preconditions, postconditions, and required inputs.
-_Avoid_: Job, Task, Step, Workflow
+1. **ASME B31.3 (§304.1.2)**: Process piping design pressure and wall thickness formulas.
+2. **API 510 (§7.1)**: Pressure vessel inspection code, retirement thickness ($t_{\text{min}}$), and remaining life calculations.
+3. **API 650 / API 620**: Welded steel tanks for oil storage, One-Foot Method, Variable-Design-Point method, and hydrostatic test limits ($0.85 F_y$).
+4. **API 520 / API 521**: Sizing, selection, and installation of pressure-relieving devices (PSV) in refineries.
+5. **AWS D1.1 / ISO 13703**: Structural welding inspection and defect classification.
+6. **OISD Standards (OISD-STD-105, OISD-RP-108, OISD-STD-129)**: Process safety, work permit, and piping/tank inspection standards for petroleum installations.
+7. **PESO SMPV Rules 2016 & Factories Act 1948 §31**: Statutory deterministic verification mandate for pressure vessels and high-hazard piping Fitness-For-Service (FFS) and PTW authorizations.
+8. **NCIIPC & IT Act 2000 §70**: Critical Information Infrastructure (CII) protection, zero cloud egress, and tamper-evident audit logging.
+9. **IEC 62443 & SCOMET**: Industrial cybersecurity zones/conduits and strategic dual-use technology protection against unauthorized telemetry exfiltration.
 
-**Artifact**:
-An immutable, content-addressed data payload produced by a Work Unit and verified by the Assurance Plane.
-_Avoid_: File, Output, Result, Document
+---
 
-**Execution Lease**:
-A time-bounded, atomic token granting a worker exclusive execution rights to a Work Unit.
-_Avoid_: Lock, Mutex, Ticket
-
-**Assurance Plane**:
-The formal verification subsystem (AST parsing and Z3 SMT solver) enforcing mathematical invariants with 0.0% False Assurance Rate.
-_Avoid_: Validator, Checker, Linter
-
-**Event Log**:
-The append-only, SHA-256 hash-chained ledger representing immutable system ground truth.
-_Avoid_: History, Audit Trail, Database log
-
-**Staging Sandbox**:
-An isolated temporary workspace where candidate artifacts are computed before two-phase commit.
-_Avoid_: Scratchpad, Temp dir, Working tree
-
-## Core Problem Statement: Shadow AI vs. Blanket Bans
-Due to data security mandates, cloud-based frontier AI models (ChatGPT, Claude, etc.) are blocked at perimeter firewalls. However, knowledge workers face manual labor friction in:
-1. Reviewing Piping & Instrumentation Diagrams (P&IDs) and isometric prints.
-2. Drafting formal PSU approval notes, board memos, and tender summaries.
-3. Executing mechanical & structural calculations against ASME, API, and ISO codes.
-4. Processing handwritten inspection logs and degraded scanned reports.
-
-Standard cloud AI tools expose organizations to regulatory non-compliance, while complete AI bans lead to severe productivity loss or unauthorized "shadow AI" usage.
-
-## Solution Paradigm: Sovereign AI Execution Plane
-The system provides a turnkey, physically air-gapped AI appliance and workbench running locally on enterprise hardware (scalable from a single 24GB GPU node to multi-GPU clusters).
-
-### Technical Principles & Breakthroughs
-1. **Evolutionary Model Merging (Sakana AI Paradigm)**: Merging parameter weights across domain specialists (mathematics, coding, instruction-following) into compact 14B checkpoints to fit within 24GB VRAM without PCIe swapping.
-2. **"The AI Scientist" State Machine**: Replaces open-ended chat with deterministic DAG execution: Plan -> Sandboxed Execute -> Self-Correct -> Synthesize -> Peer Review.
-3. **Compound Hardware-Aware Router**: Math-based dynamic scheduling using structural fast-paths, VRAM pressure metrics, and prefix KV-cache affinity.
-4. **Raster-to-Graph Topology Reconstruction (R2 - COMPLETED & VERIFIED)**: Slices high-resolution P&ID schematics via `patcher.py`, applies pure NumPy vectorized Zhang-Suen & OpenCV morphological skeletonization (`skeletonizer.py`), extracts ISA-5.1 tags with OCR repair (`graph_builder.py`), parses pipe attributes (`get_pipe_attributes`), snaps endpoints with KD-Tree and orthogonal projection, and constructs queryable NetworkX topological graphs.
-5. **Neurosymbolic Verification Engine (R3 - COMPLETED & VERIFIED)**: Combines Python AST parsing with local Z3 SMT solver (`z3_asme.py`, `z3_api510.py`) to enforce physical invariants (ASME B31.3 / API 510) before execution (0.0% False Assurance Rate).
-6. **State-Isolated Anti-Collapse Control (R4 - COMPLETED & VERIFIED)**: Decouples Immutable Spec, Mutable State, and Failure Hashes (`state_machine.py`) to eliminate cognitive collapse in 7B–14B models during multi-turn debugging (100% convergence in <= 3 turns).
-7. **Headless Enterprise Deliverables (R5 - COMPLETED & VERIFIED)**: Native OOXML document compiler (`docx_compiler.py`) and multi-tab audited spreadsheet generator (`xlsx_compiler.py`) creating compliant `.docx` and `.xlsx` artifacts without external office dependencies.
-8. **Kernel-Enforced Sovereignty (R1 - COMPLETED & VERIFIED)**: Linux kernel `nftables` DROP policy, local sandbox launcher (`launcher.py`), and eBPF/audit probes (`auditor.py`) mathematically guaranteeing 0 outbound WAN bytes.
-9. **Headless High-Security Service & Offline PKI (Phase 8 - SETTLED DESIGN)**: Headless Unix daemon listening on `127.0.0.1` enforcing mTLS authentication with hardware tokens (YubiKey / PIV SmartCard x509 certificates).
-10. **API 650 Storage Tank Z3 Verifier (Phase 8 - SETTLED DESIGN)**: Extends neurosymbolic theorem proving to storage tanks (`z3_api650.py`) for One-Foot Method (SDM), VDM, hydrostatic test limits, and overturning stability.
-11. **Cryptographic SHA-256 Merkle WAL Audit Log (Phase 8 - SETTLED DESIGN)**: Cryptographic append-only Write-Ahead Log ensuring non-repudiation and tamper-evidence for all Z3 SAT/UNSAT proofs and system executions.
-12. **Industrial Workbench React SPA & FastAPI Server (R6 / M7 - COMPLETED & VERIFIED)**: Pre-compiled React 18 + Vite single-page application (`ui/`) featuring Tabbed Viewports (Interactive SVG P&ID canvas + Quick Action Drawer, ReAct Sandbox console, Z3 Formal Audit with 0.0% FAR, Deliverables client-side docx/xlsx previewers), Zustand persistent store, Server-Sent Events (`/api/v1/events`), Dual Theme (Industrial Dark `#0B0F19` / Modern Light `#F8FAFC`), persistent Sovereignty Header Badge ("AIR-GAP ACTIVE: 0 BYTES WAN" + eBPF modal), and legacy air-gapped FastAPI static asset & REST backend (`src/sovereign/api/server.py`).
-13. **God-Mode High-Performance Daemon & IPC (Phase 11 - IN PROGRESS)**: A native Rust (Axum + Tokio) daemon completely replacing the Python control plane, offering UDS gRPC IPC to Python workers (`z3` & `vllm`), `<250ns` latency via POSIX `shm_open`, native MCP Server, and Pixi.js WebGL 2.0 viewport rendering for 50,000+ vector nodes.
-14. **Enterprise Sovereign RAG & Knowledge Plane (Phase 12 - SETTLED DESIGN)**: Full-spectrum air-gapped RAG featuring hybrid Qdrant+BM25 retrieval, RRF fusion, local `bge-reranker-base`, parent-child chunking, inline citation provenance, confidence gate refusal (<0.45), chunk-level RBAC, document versioning/supersession delta banners, multimodal VLM layout parsing, AST-guarded symbolic code execution, sub-millisecond semantic caching, router-driven LoRA hot-swapping, indirect prompt injection defense, defensible cryptographic reports, and GDPR/HIPAA selective unlearning purge.
-15. **Presentation Demonstration Suite & Multi-Scenario Switcher (M9 - COMPLETED & VERIFIED)**: Dedicated top `PresenterBar` enabling instant 1-click switching between 3 complete operational refinery states (Normal Operating Baseline, Severe Pipe Thinning Alert, and High Pressure Surge Anomaly). Backed by client-side resilient offline execution of ASME B31.3 formulas, quiet heartbeat fallback, and pre-compiled valid ISO/IEC 29500 `.docx` and `.xlsx` deliverables for 100% dependable live evaluation and pitch demonstrations.
-16. **Multi-File Ingestion & Sovereign Storage Plane Explorer (M10 - COMPLETED & VERIFIED)**: Guided 5-step intuitive engineering workflow (`1. Ingest Documents` ➔ `2. View Diagram & Storage` ➔ `3. Calculate Thickness` ➔ `4. Check Safety` ➔ `5. Download Reports`). Features a manual drag-and-drop file upload dropzone supporting `.pdf`, `.png`, `.jpg`, `.svg`, `.csv`, `.xlsx`, and `.txt` files; 4-stage visual ingestion stepper (Layout & OCR Parsing ➔ Entity Extraction ➔ Spatial Snapping ➔ Cryptographic Hashing) with real-time extraction terminal; a 3-tier Sovereign Storage Plane Explorer (Spatial Topology Graph, Relational SQLite Tabular Database, Cryptographic Merkle WAL Ledger); and a 4-tier closed-loop Data Lineage chain in Deliverables with interactive "Recompile Report from Stored Data" simulation demonstrating end-to-end report generation from stored inspection data.
-17. **4-Beat Sovereign Inspection Pipeline (Dump → Vault → Deterministic Analysis → Payoff) (M11 - COMPLETED & VERIFIED)**: Uncluttered production pipeline designed for executive evaluation and PSU sign-off workflows. Strips all demoware and preset scenario switchers; accepts 6 real inspection files (`PID_Unit3_Line1042_scan.pdf`, `UT_Inspection_Log_14Sep2026.jpg`, `Corrosion_Trend_2019-2025.xlsx`, `MillCert_A106GrB_Heat4471.pdf`, `SitePhoto_CorrosionSpot.jpg`, `PrevApprovalNote_2025.docx`) placed directly in Desktop folder `Inspection_Files_Line1042`. Features:
-    - *Beat 1 (Dump)*: Large unfussy landing zone, immediate file cards with icons and sizes, single `Lock into Vault ➔` button.
-    - *Beat 2 (The Vault)*: Stamped Case `CASE-2026-0091` at `/srv/smitrace/cases/CASE-2026-0091/`, SHA-256 tamper-proof ledger, and live 0-bytes counter.
-    - *Beat 3 (Deterministic Analysis)*: Sequential deterministic checklist ticking off 7 steps with realistic execution pacing and tension pause on Z3 SMT verification before resolving to `PASS — remaining life 6.2 years`. Zero mentions of "autonomous" to preserve strict engineering rigor and human sign-off.
-    - *Beat 4 (Payoff)*: Inline preview and binary download of `ApprovalNote_CASE-2026-0091.docx` and `AuditWorkbook_CASE-2026-0091.xlsx`, plain English operational summary, slide-out **"View Mathematical Proof & Engineering Standards"** drawer for equations and citations, and collapsible execution logs.
-    - *Design*: Uniform monochrome frosted glassmorphic button styling (`.glass-btn`) with backdrop blur and specular top-edge highlights.
-18. **Discreet Bottom Status Bar & Live Runtime Egress Audit (Phase 12 - COMPLETED & VERIFIED)**:
-    - Replaces obtrusive top header badge with a docked 24px Engineering Status Bar (`StatusBar.jsx`) running unobtrusively in the background.
-    - Displays real-time loopback enforcement (`127.0.0.1`), active isolated sandbox state, and an on-demand audit trigger.
-    - Clicking inspect opens the **Runtime Egress & Air-Gap Audit** modal powered by live `psutil` socket inspection of running FastAPI and Vite processes, mathematically proving zero WAN egress, 127.0.0.1 binding, and generating a deterministic SHA-256 integrity hash.
-19. **10-Stage Judge Demo Architecture (M12 - SYNCHRONIZED & LIVE)**:
-    - The definitive execution flow presented to evaluators and PSU selection panels:
-      `Scanned Inspection PDF` ➔ `Local OCR + Vision` ➔ `Document Structure Extraction` ➔ `Evidence Graph / Local RAG` ➔ `Task Planner` (branching into `Reasoning Model`, `Knowledge Base`, `Calculation Tool`) ➔ `Verification (PASS / FAIL)` ➔ `Approval Note Generator` ➔ `.DOCX` ➔ `Cryptographic Execution Trace`.
-    - Guarantees 0.0% False Assurance Rate via local Z3 SMT solver, native OOXML deliverable generation without cloud office dependencies, and complete non-repudiation via SHA-256 Merkle WAL.
-20. **Strict Progressive Disclosure Flow ("No 1st Only" Sequential Button Progression) (M13 - LIVE & VERIFIED)**:
-    - **Pristine Initial State**: Prior to file upload, the interface is completely clean. No case ID, no landed files, no logs, and only `1. Ingestion` appears in the navigation header.
-    - **Step-by-Step Revelation**: Action buttons and downstream tabs appear only after their preceding milestone is completed:
-      - Uploading/dropping files reveals the 6 landed files and the `Lock into Vault ➔` button.
-      - Locking files reveals Tab 2 (`2. P&ID Spatial Graph`) and the `Proceed to 2. P&ID Spatial Graph ➔` button.
-      - Tab 2 provides `Proceed to 3. Router & Agent ➔`, unlocking Tab 3.
-      - Tab 3 provides `Proceed to 4. Z3 Formal Audit ➔`, unlocking Tab 4.
-      - Tab 4 provides `Proceed to 5. Deliverables (.DOCX) ➔`, unlocking Tab 5.
-      - At any point, the presenter can proceed sequentially through the entire engineering workflow with zero premature clutter or "1st only" restrictions.
-21. **4-Plane Sovereign Multi-Agent Control Plane & State Graph (M14 - ARCHITECTED & INTEGRATED)**:
-    - Enforces a strict 4-plane authority model separating Intelligence (Probabilistic proposals), Execution (Deterministic sandboxes), Assurance (Formal AST & Z3 proofs with 0.0% FAR), and Control Plane (Authoritative event-sourced SQLite WAL ledger, dual-graph scheduling, and atomic CAS leases).
-    - Features artifact-centric agent communication (eliminating multi-agent chat degradation), sibling-preserving cascade invalidation across the Artifact Lineage Graph, and orthogonal decoupling of model belief ($\beta$) from formal mathematical assurance ($\alpha$).
-22. **Resilient Control Plane & Autonomous Lease Watchdog (Phase 15 - SETTLED DESIGN)**:
-    - Dedicated serialized SQLite WAL writer actor executing `BEGIN IMMEDIATE` transactions with exponential backoff to eliminate database lock contention and guarantee linear, fork-free SHA-256 Merkle event chaining.
-    - 60s timed execution leases (`lease_expires_at`) with periodic worker heartbeats and an autonomous watchdog sweeper reclaiming abandoned/crashed tasks back to `READY`.
-    - Ephemeral two-phase commit staging (`/srv/smitrace/staging/{lease_id}/`), committing candidate artifacts only upon formal SMT pass to prevent corrupted or ghost outputs.
-    - Cold-boot cryptographic Merkle chain validation and automatic orphan lease sweeps, with fallback deterministic projection replay from block 0.
-    - Surgical branch suspension guaranteeing sibling task independence when a failing branch escalates to `WAITING_HUMAN`.
-    - Cryptographically signed and logged `HUMAN_OVERRIDE` events ensuring 100% ITAR/DPDP Act 2023 non-repudiation.
-    - Automated chaos & fault-injection test suite (`tests/test_control_plane_resilience.py`) testing worker SIGKILLs, concurrent database hammer loads, and projection rebuilds.
+## 4. Active Security & Operational Invariants
+1. **Separation of Authority**: Probabilistic LLMs propose work units; users govern the execution DAG; sandboxes execute under leases; verifiers prove admissibility; the Control Plane commits state.
+2. **Zero False Assurance Rate (FAR)**: SMT proofs reject invalid states with 0.0% tolerance. Solver timeouts emit `FAIL`.
+3. **Hardware-Agnostic Profile Discovery**: Automatically detects CPU/GPU resources and activates Minimum (8-16GB VRAM), Standard (24-48GB VRAM), or High-End (80GB+ VRAM) configurations.
+4. **Declarative Model Gateway**: Open-weight models (Qwen, Llama, Mistral, Gemma, OCR/VLM runtimes) configured via `config/models.yaml` with zero backend recompilation.
+5. **Linear Event Ledger**: Serialized writer actor using `BEGIN IMMEDIATE` transactions preventing split-brain states or audit log forks.
+6. **Timed Leases & Watchdog**: 60s lease TTL with 15s heartbeats preventing zombie processes from corrupting plant maintenance flows.
+7. **Atomic Two-Phase Commit**: Unverified drafts quarantine in `staging/{lease_id}/`; promotion to `cases/{case_id}/` occurs strictly post-verification.
+8. **Boundary Hardening**: Finite float clamping (`-999999.0`), defensive division guards, mTLS proxy filtering, and AST forbidden modules denylist.
+9. **Air-Gap Tri-Index Grounding**: Local Tantivy lexical + HNSW vector + metadata search grounded in organization manuals, SOPs, and past correspondence with cryptographic chunk provenance.
