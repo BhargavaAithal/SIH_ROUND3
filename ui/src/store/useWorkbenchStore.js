@@ -66,18 +66,27 @@ print(json.dumps(result))
   // 1. Navigation & Sequential Progression
   activeTab: 'ingest', // 'ingest' | 'pid' | 'sandbox' | 'z3' | 'deliverables'
   unlockedTabs: ['ingest'], // Strictly starts with only 'ingest' unlocked
+  maxUnlockedStep: 1, // Strictly 1 until documents are uploaded, progresses sequentially (1 to 9)
+  stepLockNotice: null, // Temporary user-facing feedback when locked step is accessed
   theme: 'dark',       // 'dark' | 'light'
   quickDrawerOpen: false,
   ebpfModalOpen: false,
   storageView: 'schematic', // 'schematic' | 'graph' | 'tables' | 'wal'
 
-  setActiveTab: (tab) => set((state) => ({
-    activeTab: tab,
-    unlockedTabs: state.unlockedTabs.includes(tab) ? state.unlockedTabs : [...state.unlockedTabs, tab],
-  })),
+  setActiveTab: (tab) => set((state) => {
+    // Only allow setting activeTab if it has already been sequentially unlocked
+    if (!state.unlockedTabs.includes(tab)) {
+      return state;
+    }
+    return { activeTab: tab };
+  }),
   unlockTab: (tabId) => set((state) => ({
     unlockedTabs: state.unlockedTabs.includes(tabId) ? state.unlockedTabs : [...state.unlockedTabs, tabId],
   })),
+  setMaxUnlockedStep: (step) => set((state) => ({
+    maxUnlockedStep: Math.max(state.maxUnlockedStep || 1, step),
+  })),
+  setStepLockNotice: (notice) => set({ stepLockNotice: notice }),
   setStorageView: (view) => set({ storageView: view }),
   toggleTheme: () => set((state) => {
     const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
@@ -96,22 +105,42 @@ print(json.dumps(result))
     const s = Math.max(1, Math.min(9, stepNum));
     const state = get();
 
+    // Guard 1: Documents MUST be uploaded before leaving Step 1
+    const hasFiles = state.ingestedFiles && state.ingestedFiles.length > 0;
+    if (s > 1 && !hasFiles) {
+      set({ stepLockNotice: 'Upload inspection documents in Step 1 first to unlock next steps.' });
+      return;
+    }
+
+    // Guard 2: Cannot access locked steps beyond maxUnlockedStep
+    if (s > (state.maxUnlockedStep || 1)) {
+      set({ stepLockNotice: `Step ${s} is locked. Complete steps sequentially in order.` });
+      return;
+    }
+
+    // Clear any previous lock notice
+    set({ stepLockNotice: null });
+
     if (s === 1) {
       set({
         demoStep: 1,
         activeTab: 'ingest',
         currentBeat: 1,
-        unlockedTabs: ['ingest'],
         showSystemLogs: false,
         ebpfModalOpen: false,
       });
       state.setScenario('baseline');
     } else if (s === 2) {
+      const activeCaseId = state.activeCaseId || 'CASE-2026-0091';
+      const caseFiles = (state.caseFiles && state.caseFiles.length > 0) ? state.caseFiles : state.ingestedFiles;
       set((st) => ({
         demoStep: 2,
         activeTab: 'ingest',
         currentBeat: 2,
+        activeCaseId,
+        caseFiles,
         unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 3), // Unlocks Step 3 (P&ID)
         showSystemLogs: true,
         ebpfModalOpen: false,
       }));
@@ -119,7 +148,8 @@ print(json.dumps(result))
       set((st) => ({
         demoStep: 3,
         activeTab: 'pid',
-        unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid'])),
+        unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 4), // Unlocks Step 4 (Sandbox)
         ebpfModalOpen: false,
       }));
     } else if (s === 4) {
@@ -127,6 +157,7 @@ print(json.dumps(result))
         demoStep: 4,
         activeTab: 'sandbox',
         unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 5), // Unlocks Step 5 (Code Execution)
         quickDrawerOpen: false,
         ebpfModalOpen: false,
       }));
@@ -134,7 +165,8 @@ print(json.dumps(result))
       set((st) => ({
         demoStep: 5,
         activeTab: 'sandbox',
-        unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox'])),
+        unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox', 'z3'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 6), // Unlocks Step 6 (Z3 SAT)
         quickDrawerOpen: true,
         ebpfModalOpen: false,
       }));
@@ -144,6 +176,7 @@ print(json.dumps(result))
         demoStep: 6,
         activeTab: 'z3',
         unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox', 'z3'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 7), // Unlocks Step 7 (Z3 UNSAT)
         ebpfModalOpen: false,
       }));
     } else if (s === 7) {
@@ -151,7 +184,8 @@ print(json.dumps(result))
       set((st) => ({
         demoStep: 7,
         activeTab: 'z3',
-        unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox', 'z3'])),
+        unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox', 'z3', 'deliverables'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 8), // Unlocks Step 8 (Deliverables)
         ebpfModalOpen: false,
       }));
     } else if (s === 8) {
@@ -159,20 +193,32 @@ print(json.dumps(result))
         demoStep: 8,
         activeTab: 'deliverables',
         unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox', 'z3', 'deliverables'])),
+        maxUnlockedStep: Math.max(st.maxUnlockedStep || 1, 9), // Unlocks Step 9 (eBPF Audit)
         ebpfModalOpen: false,
       }));
     } else if (s === 9) {
       set((st) => ({
         demoStep: 9,
         unlockedTabs: Array.from(new Set([...st.unlockedTabs, 'ingest', 'pid', 'sandbox', 'z3', 'deliverables'])),
+        maxUnlockedStep: 9,
         ebpfModalOpen: true,
       }));
     }
   },
 
   nextDemoStep: () => {
-    const next = Math.min(9, get().demoStep + 1);
-    get().goToDemoStep(next);
+    const state = get();
+    const hasFiles = state.ingestedFiles && state.ingestedFiles.length > 0;
+    if (state.demoStep === 1 && !hasFiles) {
+      set({ stepLockNotice: 'Upload inspection documents in Step 1 first to unlock next steps.' });
+      return;
+    }
+    const next = Math.min(9, state.demoStep + 1);
+    if (next <= (state.maxUnlockedStep || 1)) {
+      get().goToDemoStep(next);
+    } else {
+      set({ stepLockNotice: `Step ${next} is locked. Complete the current step first.` });
+    }
   },
 
   prevDemoStep: () => {
@@ -211,7 +257,14 @@ print(json.dumps(result))
   setActiveCaseId: (id) => set({ activeCaseId: id }),
   setShowMathProofDrawer: (show) => set({ showMathProofDrawer: show }),
   setShowSystemLogs: (show) => set({ showSystemLogs: show }),
-  setIngestedFiles: (files) => set({ ingestedFiles: files }),
+  setIngestedFiles: (files) => set((state) => {
+    const list = files || [];
+    const hasFiles = list.length > 0;
+    return {
+      ingestedFiles: list,
+      maxUnlockedStep: hasFiles ? Math.max(state.maxUnlockedStep || 1, 2) : (state.maxUnlockedStep || 1),
+    };
+  }),
   setCaseFiles: (files) => set({ caseFiles: files }),
   setIsAnalyzing: (val) => set({ isAnalyzing: val, isAutonomousRunning: val }),
   setAnalysisStep: (step) => set({ analysisStep: step, autonomousStep: step }),
@@ -234,6 +287,8 @@ print(json.dumps(result))
     activeCaseId: null,
     activeTab: 'ingest',
     unlockedTabs: ['ingest'],
+    maxUnlockedStep: 1,
+    stepLockNotice: null,
     ingestedFiles: [],
     caseFiles: [],
     isAnalyzing: false,

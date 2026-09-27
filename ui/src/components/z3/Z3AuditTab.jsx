@@ -7,7 +7,7 @@ import { ProofLogViewer } from './ProofLogViewer';
 import { CheckCircleIcon, AlertTriangleIcon, ShieldIcon } from '../../assets/icons';
 
 export const Z3AuditTab = () => {
-  const { z3Result, activeScenario, setScenario, setActiveTab, unlockTab } = useWorkbenchStore();
+  const { z3Result, activeScenario, setScenario, setActiveTab, unlockTab, goToDemoStep, setMaxUnlockedStep, demoStep } = useWorkbenchStore();
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
   const currentSc = SCENARIOS[activeScenario] || SCENARIOS.baseline;
@@ -35,27 +35,52 @@ export const Z3AuditTab = () => {
               Mathematical AST invariant extraction and Z3 formal solver verifying ASME B31.3 physics invariants (0.0% FAR).
             </p>
           </div>
-          <button
-            onClick={() => {
-              unlockTab('deliverables');
-              setActiveTab('deliverables');
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 18px',
-              backgroundColor: 'var(--accent-green)',
-              color: '#0B0F19',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '13px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            Proceed to 5. Deliverables (.DOCX) ➔
-          </button>
+          {demoStep === 6 ? (
+            <button
+              onClick={() => {
+                setMaxUnlockedStep(8);
+                goToDemoStep(7);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                backgroundColor: '#EF4444',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              ⚠️ Next: Trigger Failure Scenario (Step 7) ➔
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                unlockTab('deliverables');
+                setMaxUnlockedStep(9);
+                goToDemoStep(8);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                backgroundColor: 'var(--accent-green)',
+                color: '#0B0F19',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              Proceed to Step 8: Deliverables (.DOCX) ➔
+            </button>
+          )}
         </div>
 
         {/* Presenter Scenario Controller (for Step 6 & 7 Demonstration) */}
@@ -269,43 +294,21 @@ export const Z3AuditTab = () => {
 
         {/* Sequential Step Transition Banner */}
         <div style={{
+          padding: '10px 16px',
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '8px',
+          fontSize: '11px',
+          color: 'var(--text-muted)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 20px',
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-default)',
-          borderRadius: '8px',
+          gap: '8px',
         }}>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Formal SMT Theorem Prover Verification Complete
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-              All mathematical invariants proven with 0.0% false assurance rate.
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              unlockTab('deliverables');
-              setActiveTab('deliverables');
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 18px',
-              backgroundColor: 'var(--accent-green)',
-              color: '#0B0F19',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '13px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            Proceed to 5. Deliverables (.DOCX) ➔
-          </button>
+          <span style={{ color: 'var(--accent-green)', fontSize: '13px' }}>✔</span>
+          {demoStep === 6
+            ? <span>Baseline SAT verified. Click <strong style={{ color: '#EF4444' }}>⚠️ Next: Trigger Failure Scenario (Step 7) ➔</strong> above to demonstrate hazard intercept.</span>
+            : <span>Failure scenario complete. Click <strong style={{ color: 'var(--accent-green)' }}>Proceed to Step 8: Deliverables (.DOCX) ➔</strong> above to generate reports.</span>
+          }
         </div>
       </div>
     </div>

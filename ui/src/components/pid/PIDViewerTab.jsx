@@ -9,7 +9,7 @@ import { useWorkbenchStore } from '../../store/useWorkbenchStore';
 import { fetchTopology } from '../../services/api';
 
 export const PIDViewerTab = () => {
-  const { setTopology, storageView, setStorageView, setActiveTab, unlockTab } = useWorkbenchStore();
+  const { setTopology, storageView, setStorageView, setActiveTab, unlockTab, goToDemoStep, setMaxUnlockedStep } = useWorkbenchStore();
   const [activeSubView, setActiveSubView] = useState('schematic'); // 'schematic' | 'storage' | 'gpu'
   const [topology, setTopologyLocal] = useState({ nodes: [], edges: [] });
 
@@ -102,7 +102,8 @@ export const PIDViewerTab = () => {
         <button
           onClick={() => {
             unlockTab('sandbox');
-            setActiveTab('sandbox');
+            setMaxUnlockedStep(5);
+            goToDemoStep(4);
           }}
           style={{
             display: 'flex',
@@ -118,7 +119,7 @@ export const PIDViewerTab = () => {
             cursor: 'pointer',
           }}
         >
-          Proceed to 3. Router & Agent ➔
+          Proceed to Step 4: Router &amp; Agent Sandbox ➔
         </button>
       </div>
 

@@ -6,7 +6,7 @@ import { DataGridTable } from './DataGridTable';
 import { SCENARIOS } from '../../assets/sampleData';
 
 export const DeliverablesTab = () => {
-  const { activeDeliverableTab, setActiveDeliverableTab, activeScenario, merkleAuditHash } = useWorkbenchStore();
+  const { activeDeliverableTab, setActiveDeliverableTab, activeScenario, merkleAuditHash, goToDemoStep, setEbpfModalOpen } = useWorkbenchStore();
   const currentSc = SCENARIOS[activeScenario] || SCENARIOS.baseline;
 
   const [isCompiling, setIsCompiling] = useState(false);
@@ -113,7 +113,7 @@ export const DeliverablesTab = () => {
       }}>
         <div>
           <h1 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>
-            Step 5: Download Official Inspection Reports
+            Step 8: Download Official Inspection Reports
           </h1>
           <p style={{ fontSize: '11px', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
             Compiled directly from ingested ultrasonic records and verified through the sovereign SMT engine.
@@ -156,6 +156,28 @@ export const DeliverablesTab = () => {
           </div>
 
           <DeliverableActions />
+
+          <button
+            onClick={() => {
+              goToDemoStep(9);
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '7px 14px',
+              backgroundColor: 'var(--accent-cyan)',
+              color: '#0B0F19',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '12px',
+              fontWeight: 800,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Proceed to Step 9: Air-Gap Audit ➔
+          </button>
         </div>
       </div>
 

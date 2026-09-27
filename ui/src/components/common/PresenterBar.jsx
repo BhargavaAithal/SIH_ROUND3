@@ -22,9 +22,25 @@ export const PresenterBar = () => {
     goToDemoStep,
     nextDemoStep,
     prevDemoStep,
-    showPresenterScript,
-    setShowPresenterScript,
+    maxUnlockedStep = 1,
+    ingestedFiles = [],
+    stepLockNotice,
+    setStepLockNotice,
   } = useWorkbenchStore();
+
+  const hasFiles = Boolean(ingestedFiles && ingestedFiles.length > 0);
+  const isStep1Blocked = demoStep === 1 && !hasFiles;
+  const canGoNext = demoStep < 9 && !isStep1Blocked && demoStep < maxUnlockedStep;
+
+  // Auto-dismiss lock notice
+  useEffect(() => {
+    if (stepLockNotice) {
+      const timer = setTimeout(() => {
+        setStepLockNotice(null);
+      }, 3200);
+      return () => clearTimeout(timer);
+    }
+  }, [stepLockNotice, setStepLockNotice]);
 
   // Keyboard navigation for demo presenter
   useEffect(() => {
@@ -33,17 +49,32 @@ export const PresenterBar = () => {
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
 
       if (e.key === 'ArrowRight' || e.key === 'n' || e.key === 'N') {
-        nextDemoStep();
+        if (canGoNext) {
+          nextDemoStep();
+        } else if (isStep1Blocked) {
+          setStepLockNotice('Upload inspection documents in Step 1 first before advancing to Step 2.');
+        } else if (demoStep < 9) {
+          setStepLockNotice(`Step ${demoStep + 1} is locked. Complete steps sequentially in order.`);
+        }
       } else if (e.key === 'ArrowLeft' || e.key === 'p' || e.key === 'P') {
         prevDemoStep();
       } else if (e.key >= '1' && e.key <= '9') {
-        goToDemoStep(parseInt(e.key, 10));
+        const target = parseInt(e.key, 10);
+        if (target === 1) {
+          goToDemoStep(1);
+        } else if (!hasFiles) {
+          setStepLockNotice('Upload inspection documents in Step 1 first before accessing other steps.');
+        } else if (target > maxUnlockedStep) {
+          setStepLockNotice(`Step ${target} is locked. Complete steps sequentially (1 to ${maxUnlockedStep}).`);
+        } else {
+          goToDemoStep(target);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [nextDemoStep, prevDemoStep, goToDemoStep]);
+  }, [nextDemoStep, prevDemoStep, goToDemoStep, canGoNext, isStep1Blocked, hasFiles, maxUnlockedStep, demoStep, setStepLockNotice]);
 
   const currentStepObj = DEMO_STEPS.find((s) => s.step === demoStep) || DEMO_STEPS[0];
 
@@ -60,9 +91,50 @@ export const PresenterBar = () => {
         fontSize: '11.5px',
         userSelect: 'none',
         zIndex: 45,
+        position: 'relative',
         boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
       }}
     >
+      {/* Lock Notice Toast */}
+      {stepLockNotice && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '38px',
+            right: '20px',
+            backgroundColor: '#1E1412',
+            border: '1px solid #EF4444',
+            color: '#FECACA',
+            padding: '5px 12px',
+            borderRadius: '6px',
+            fontSize: '11px',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            zIndex: 100,
+            boxShadow: '0 4px 16px rgba(0,0,0,0.5)',
+          }}
+        >
+          <span style={{ fontSize: '13px' }}>🔒</span>
+          <span>{stepLockNotice}</span>
+          <button
+            onClick={() => setStepLockNotice(null)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: '#FCA5A5',
+              cursor: 'pointer',
+              padding: '0 2px',
+              fontSize: '12px',
+              marginLeft: '4px',
+            }}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Scenario Switcher Buttons */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <span
@@ -152,22 +224,57 @@ export const PresenterBar = () => {
             <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>
               {currentStepObj.title}
             </span>
+            {isStep1Blocked && (
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 700,
+                  color: '#F59E0B',
+                  backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                  border: '1px solid rgba(245, 158, 11, 0.35)',
+                  padding: '1px 6px',
+                  borderRadius: '3px',
+                  marginLeft: '4px',
+                }}
+                title="Upload files in the landing zone below to unlock Step 2"
+              >
+                🔒 Docs Required
+              </span>
+            )}
           </div>
 
           <button
-            onClick={nextDemoStep}
-            disabled={demoStep >= 9}
+            onClick={() => {
+              if (canGoNext) {
+                nextDemoStep();
+              } else if (isStep1Blocked) {
+                setStepLockNotice('Upload inspection documents in Step 1 first to unlock Step 2.');
+              } else if (demoStep < 9) {
+                setStepLockNotice(`Step ${demoStep + 1} is locked. Complete the current step first.`);
+              }
+            }}
+            disabled={!canGoNext}
             style={{
               padding: '2px 8px',
-              backgroundColor: 'var(--bg-surface-elevated)',
-              color: demoStep >= 9 ? 'var(--text-muted)' : 'var(--accent-cyan)',
-              border: '1px solid var(--border-subtle)',
+              backgroundColor: canGoNext ? 'var(--bg-surface-elevated)' : 'rgba(255, 255, 255, 0.02)',
+              color: canGoNext ? 'var(--accent-cyan)' : 'var(--text-muted)',
+              border: `1px solid ${canGoNext ? 'var(--border-subtle)' : 'transparent'}`,
               borderRadius: '4px',
-              cursor: demoStep >= 9 ? 'not-allowed' : 'pointer',
+              cursor: canGoNext ? 'pointer' : 'not-allowed',
               fontSize: '11px',
               fontWeight: 700,
+              opacity: canGoNext ? 1 : 0.45,
+              transition: 'all 0.15s ease',
             }}
-            title="Next step (or press Right Arrow / 'N')"
+            title={
+              isStep1Blocked
+                ? 'Step 2 is locked — Upload inspection documents in Step 1 first'
+                : demoStep >= 9
+                ? 'Final step reached'
+                : !canGoNext
+                ? `Step ${demoStep + 1} is locked. Complete the current step first.`
+                : "Next step (or press Right Arrow / 'N')"
+            }
           >
             Next ▶
           </button>
@@ -184,9 +291,13 @@ export const PresenterBar = () => {
             border: '1px solid var(--border-subtle)',
             fontFamily: 'var(--font-mono)',
           }}
-          title="Use keys [1-9] to jump, [←/P] and [→/N] to step"
+          title={
+            hasFiles
+              ? `Unlocked steps: 1 to ${maxUnlockedStep}. Keys [1-${maxUnlockedStep}] active.`
+              : 'Step 1 active. Upload documents to unlock subsequent steps.'
+          }
         >
-          Keys: 1-9 • [←/→]
+          Keys: 1{maxUnlockedStep > 1 ? `-${maxUnlockedStep}` : ''} • [←/→]
         </span>
       </div>
     </div>

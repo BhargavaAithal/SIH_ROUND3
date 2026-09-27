@@ -14,6 +14,7 @@ export const Header = () => {
     resetToBeat1,
     egressBytes,
     setEbpfModalOpen,
+    goToDemoStep,
   } = useWorkbenchStore();
 
   const allTabs = [
@@ -26,6 +27,21 @@ export const Header = () => {
 
   // Only display tabs that have been reached / unlocked sequentially
   const visibleTabs = allTabs.filter((t) => (unlockedTabs || ['ingest']).includes(t.id));
+
+  const handleTabClick = (tabId) => {
+    setActiveTab(tabId);
+    if (tabId === 'ingest') {
+      goToDemoStep(currentBeat >= 2 ? 2 : 1);
+    } else if (tabId === 'pid') {
+      goToDemoStep(3);
+    } else if (tabId === 'sandbox') {
+      goToDemoStep(4);
+    } else if (tabId === 'z3') {
+      goToDemoStep(6);
+    } else if (tabId === 'deliverables') {
+      goToDemoStep(8);
+    }
+  };
 
   return (
     <header style={{
@@ -44,7 +60,7 @@ export const Header = () => {
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div
           style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
-          onClick={() => setActiveTab('ingest')}
+          onClick={() => handleTabClick('ingest')}
         >
           <ShieldIcon size={22} color="var(--accent-green)" />
           <span style={{ fontWeight: 800, fontSize: '15px', letterSpacing: '0.06em', color: 'var(--text-primary)' }}>
@@ -91,7 +107,7 @@ export const Header = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabClick(tab.id)}
               style={{
                 display: 'flex',
                 alignItems: 'center',

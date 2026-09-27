@@ -7,7 +7,7 @@ import { calculatePipeASME } from '../../services/api';
 import { SlidersIcon, CheckCircleIcon, AlertTriangleIcon } from '../../assets/icons';
 
 export const CalculationSandboxTab = () => {
-  const { taskSpec, setTaskSpec, setActiveTab, unlockTab, setZ3Result } = useWorkbenchStore();
+  const { taskSpec, setTaskSpec, setActiveTab, unlockTab, setZ3Result, goToDemoStep, setMaxUnlockedStep, demoStep } = useWorkbenchStore();
 
   const [diameter, setDiameter] = useState(taskSpec?.outside_diameter || 16.0);
   const [pressure, setPressure] = useState(taskSpec?.design_pressure || 400.0);
@@ -26,7 +26,7 @@ export const CalculationSandboxTab = () => {
 
   const [isCalculating, setIsCalculating] = useState(false);
   const [calcResult, setCalcResult] = useState(null);
-  const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
+  const [showTechnicalDetails, setShowTechnicalDetails] = useState(demoStep === 5);
 
   // Default analytical calculation
   const defaultTm = (pressure * diameter) / (2 * (stress * 1.0 + pressure * 0.4)) + corrosion;
@@ -79,27 +79,53 @@ export const CalculationSandboxTab = () => {
               Verify pipe wall thickness against statutory ASME B31.3 Section 304.1.2 limits.
             </p>
           </div>
-          <button
-            onClick={() => {
-              unlockTab('z3');
-              setActiveTab('z3');
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 18px',
-              backgroundColor: 'var(--accent-green)',
-              color: '#0B0F19',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '13px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            Proceed to 4. Z3 Formal Audit ➔
-          </button>
+          {demoStep === 4 ? (
+            <button
+              onClick={() => {
+                setShowTechnicalDetails(true);
+                setMaxUnlockedStep(6);
+                goToDemoStep(5);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                backgroundColor: 'var(--accent-cyan)',
+                color: '#0B0F19',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              Next: See Code Execution (Step 5) ➔
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                unlockTab('z3');
+                setMaxUnlockedStep(7);
+                goToDemoStep(6);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                backgroundColor: 'var(--accent-green)',
+                color: '#0B0F19',
+                border: 'none',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 800,
+                cursor: 'pointer',
+              }}
+            >
+              Proceed to Step 6: Z3 Formal Audit ➔
+            </button>
+          )}
         </div>
 
         {/* Visual Operator Calculation Card */}
@@ -260,43 +286,21 @@ export const CalculationSandboxTab = () => {
 
         {/* Sequential Step Transition Banner */}
         <div style={{
+          padding: '10px 16px',
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '8px',
+          fontSize: '11px',
+          color: 'var(--text-muted)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '14px 20px',
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-default)',
-          borderRadius: '8px',
+          gap: '8px',
         }}>
-          <div>
-            <div style={{ fontSize: '13px', fontWeight: 800, color: 'var(--text-primary)' }}>
-              Deterministic Pipe Calculation Verified
-            </div>
-            <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>
-              Ready to verify statutory ASME B31.3 invariants with the local Z3 SMT solver.
-            </div>
-          </div>
-          <button
-            onClick={() => {
-              unlockTab('z3');
-              setActiveTab('z3');
-            }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '8px 18px',
-              backgroundColor: 'var(--accent-green)',
-              color: '#0B0F19',
-              border: 'none',
-              borderRadius: '6px',
-              fontSize: '13px',
-              fontWeight: 800,
-              cursor: 'pointer',
-            }}
-          >
-            Proceed to 4. Z3 Formal Audit ➔
-          </button>
+          <span style={{ color: 'var(--accent-green)', fontSize: '13px' }}>✔</span>
+          {demoStep === 4
+            ? <span>Click <strong style={{ color: 'var(--text-primary)' }}>Next: See Code Execution (Step 5) ➔</strong> above to view the zero-trust code execution layer.</span>
+            : <span>Code Execution visible. Click <strong style={{ color: 'var(--text-primary)' }}>Proceed to Step 6: Z3 Formal Audit ➔</strong> above to continue.</span>
+          }
         </div>
 
         {/* Collapsible Technical Details */}

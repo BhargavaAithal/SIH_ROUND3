@@ -13,6 +13,9 @@ export const QuickActionDrawer = () => {
     setActiveTab,
     setTaskSpec,
     setZ3Result,
+    goToDemoStep,
+    setMaxUnlockedStep,
+    unlockTab,
   } = useWorkbenchStore();
 
   const activeNodeData = topology.nodes.find((n) => n.id === selectedNode);
@@ -94,7 +97,9 @@ export const QuickActionDrawer = () => {
       actual_thickness: thickness,
     });
     setQuickDrawerOpen(false);
-    setActiveTab('sandbox');
+    unlockTab('sandbox');
+    setMaxUnlockedStep(5);
+    goToDemoStep(5);
   };
 
   const handleSendToZ3 = async () => {
@@ -116,7 +121,9 @@ export const QuickActionDrawer = () => {
       };
       setZ3Result(z3Payload);
       setQuickDrawerOpen(false);
-      setActiveTab('z3');
+      unlockTab('z3');
+      setMaxUnlockedStep(7);
+      goToDemoStep(6);
     } catch (err) {
       console.error('Z3 formal verification failed:', err);
     } finally {

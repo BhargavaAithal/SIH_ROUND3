@@ -318,6 +318,8 @@ export const IngestionTab = () => {
     resetToBeat1,
     unlockTab,
     setActiveTab,
+    setMaxUnlockedStep,
+    goToDemoStep,
   } = useWorkbenchStore();
 
   const [dragOver, setDragOver] = useState(false);
@@ -436,6 +438,8 @@ export const IngestionTab = () => {
     setCaseFiles(ingestedFiles);
     setCurrentBeat(2);
     unlockTab('pid');
+    setMaxUnlockedStep(3); // Unlocks Step 3 (P&ID Spatial Topology)
+    goToDemoStep(2);
     addSystemLog(`[VAULT] Case CASE-2026-0091 registered at /srv/smitrace/cases/CASE-2026-0091/.`);
     addSystemLog(`[VAULT] Stamped SHA-256 Merkle root seal across ${ingestedFiles.length} files. Air-gap isolation verified.`);
   };
@@ -458,9 +462,9 @@ export const IngestionTab = () => {
     const next = analysisStep + 1;
     if (next <= 9) {
       setAnalysisStep(next);
-      if (next >= 4) unlockTab('sandbox');
-      if (next >= 6) unlockTab('z3');
-      if (next >= 8) unlockTab('deliverables');
+      if (next >= 4) { unlockTab('sandbox'); setMaxUnlockedStep(5); }
+      if (next >= 6) { unlockTab('z3'); setMaxUnlockedStep(7); }
+      if (next >= 8) { unlockTab('deliverables'); setMaxUnlockedStep(9); }
       const log = PIPELINE_LOGS[next] || `Stage ${next} completed.`;
       addSystemLog(`[PIPELINE] ${log}`);
       setAnalysisChecklist((prev) =>
@@ -474,6 +478,7 @@ export const IngestionTab = () => {
         setIsAnalyzing(false);
         setCurrentBeat(4);
         unlockTab('deliverables');
+        setMaxUnlockedStep(9);
         addSystemLog(`[COMPLETE] 10-Stage Pipeline finished. Official deliverables & cryptographic trace ready.`);
       }
     }
@@ -506,9 +511,9 @@ export const IngestionTab = () => {
       timers.forEach(({ step, delay, log }) => {
         setTimeout(() => {
           setAnalysisStep(step);
-          if (step >= 4) unlockTab('sandbox');
-          if (step >= 6) unlockTab('z3');
-          if (step >= 8) unlockTab('deliverables');
+          if (step >= 4) { unlockTab('sandbox'); setMaxUnlockedStep(5); }
+          if (step >= 6) { unlockTab('z3'); setMaxUnlockedStep(7); }
+          if (step >= 8) { unlockTab('deliverables'); setMaxUnlockedStep(9); }
           addSystemLog(`[PIPELINE] ${log}`);
 
           setAnalysisChecklist((prev) =>
@@ -523,6 +528,7 @@ export const IngestionTab = () => {
             setIsAnalyzing(false);
             setCurrentBeat(4);
             unlockTab('deliverables');
+            setMaxUnlockedStep(9);
             addSystemLog(`[COMPLETE] 10-Stage Pipeline finished. Official deliverables & cryptographic trace ready.`);
           }
         }, delay);
@@ -982,8 +988,8 @@ export const IngestionTab = () => {
                 <button
                   className="glass-btn glass-btn-lg"
                   onClick={() => {
-                    unlockTab('pid');
-                    setActiveTab('pid');
+                    setMaxUnlockedStep(4);
+                    goToDemoStep(3);
                   }}
                   style={{
                     backgroundColor: 'var(--accent-cyan)',
@@ -995,7 +1001,7 @@ export const IngestionTab = () => {
                     gap: '6px',
                   }}
                 >
-                  <span>Proceed to 2. P&ID ➔</span>
+                  <span>Proceed to Step 3: P&amp;ID Spatial Graph ➔</span>
                 </button>
               </div>
             </div>
@@ -1163,8 +1169,8 @@ export const IngestionTab = () => {
                 <button
                   className="glass-btn glass-btn-lg"
                   onClick={() => {
-                    unlockTab('pid');
-                    setActiveTab('pid');
+                    setMaxUnlockedStep(4);
+                    goToDemoStep(3);
                   }}
                   style={{
                     backgroundColor: 'var(--accent-cyan)',
@@ -1176,7 +1182,7 @@ export const IngestionTab = () => {
                     gap: '6px',
                   }}
                 >
-                  <span>Proceed to 2. P&ID Spatial Graph ➔</span>
+                  <span>Proceed to Step 3: P&amp;ID Spatial Graph ➔</span>
                 </button>
               </div>
             </div>
@@ -1976,8 +1982,8 @@ export const IngestionTab = () => {
               <button
                 className="glass-btn glass-btn-lg"
                 onClick={() => {
-                  unlockTab('pid');
-                  setActiveTab('pid');
+                  setMaxUnlockedStep(4);
+                  goToDemoStep(3);
                 }}
                 style={{
                   backgroundColor: 'var(--accent-green)',
@@ -1989,7 +1995,7 @@ export const IngestionTab = () => {
                   gap: '6px',
                 }}
               >
-                <span>Proceed to 2. P&amp;ID Spatial Graph ➔</span>
+                <span>Proceed to Step 3: P&amp;ID Spatial Graph ➔</span>
               </button>
             </div>
 
