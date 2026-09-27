@@ -1,0 +1,70 @@
+version: "1.0"
+suite: "skill-routing"
+description: "Evaluates semantic routing integrity and progressive disclosure across Antigravity skills"
+
+tasks:
+  - id: "ROUTE-001"
+    name: "CI/CD Pipeline Failure Routing"
+    prompt: "Our GitHub Actions build is failing with exit code 1 at the step 'npm test'. Please inspect the workflow error trace, redact sensitive credentials, and provide the fix with dry-run verification."
+    expected_skill: "ci-debugger"
+    min_confidence: 0.85
+    assertions:
+      - type: "skill_match"
+        target: "ci-debugger"
+      - type: "regex_match"
+        pattern: "(redact|scrub|credentials|dry-run|workflow)"
+
+  - id: "ROUTE-002"
+    name: "Live Documentation Scraping Routing"
+    prompt: "The framework released new v3 APIs last week. Scrape and synchronize external documentation so we can reference current methods without hallucinating deprecated signatures."
+    expected_skill: "doc-updater"
+    min_confidence: 0.80
+    assertions:
+      - type: "skill_match"
+        target: "doc-updater"
+      - type: "regex_match"
+        pattern: "(documentation|scrape|fetch|reference)"
+
+  - id: "ROUTE-003"
+    name: "Static Security & Secret Audit Routing"
+    prompt: "Audit our repository for security vulnerabilities, detect any hardcoded service account keys or unescaped shell string interpolations, and verify credential zeroization."
+    expected_skill: "security-auditor"
+    min_confidence: 0.85
+    assertions:
+      - type: "skill_match"
+        target: "security-auditor"
+      - type: "regex_match"
+        pattern: "(security|vulnerabilit|secret|zeroiz|injection)"
+
+  - id: "ROUTE-004"
+    name: "Requirements to PRD Task Formalization"
+    prompt: "Here is the raw feature request for multi-factor authentication. Formalize this into an atomic, machine-readable prd.json task list with acceptance criteria."
+    expected_skill: "to-prd"
+    min_confidence: 0.85
+    assertions:
+      - type: "skill_match"
+        target: "to-prd"
+      - type: "regex_match"
+        pattern: "(prd\\.json|task|acceptance|criteria)"
+
+  - id: "ROUTE-005"
+    name: "Red-Green-Refactor TDD Routing"
+    prompt: "Implement a token bucket rate limiter module. Enforce Red-Green-Refactor test-driven development: author failing unit tests first before writing production code."
+    expected_skill: "tdd"
+    min_confidence: 0.85
+    assertions:
+      - type: "skill_match"
+        target: "tdd"
+      - type: "regex_match"
+        pattern: "(test|red|green|refactor|failing)"
+
+  - id: "ROUTE-006"
+    name: "Git Guardrails & Ephemeral Branch Routing"
+    prompt: "We finished our task. Prepare a commit on our feature branch using Conventional Commits and ensure we never git add all files blindly."
+    expected_skill: "git-guardrails"
+    min_confidence: 0.85
+    assertions:
+      - type: "skill_match"
+        target: "git-guardrails"
+      - type: "regex_match"
+        pattern: "(conventional|commit|branch|staging|guardrail)"

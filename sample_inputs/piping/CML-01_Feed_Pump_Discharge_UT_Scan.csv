@@ -1,0 +1,22 @@
+# REFINERY CRITICAL CORROSION MONITORING LOG (CML)
+# Survey Type: Ultrasonic Thickness (UT) Grid Scan
+# Equipment Tag: 8-PMP-4002-A1A (Circuit 400)
+# Description: Straight Pipe Run - Feed Pump Discharge
+# Material: ASTM A106 Grade B Carbon Steel
+# Nominal Outside Diameter (D): 8.625 in
+# Nominal Wall Thickness (t_nom): 0.322 in (Schedule 40)
+# Design Pressure (P): 480 psig
+# Design Temperature (T): 350 deg F
+# Allowable Stress (S): 20000 psi
+# Joint Quality Factor (E): 1.00
+# Temperature Coefficient (Y): 0.40
+# Corrosion Allowance (c): 0.0625 in
+# Statutory Requirement: ASME B31.3 Section 304.1.2
+# Minimum Required Wall Thickness (t_min): 0.1652 in
+# Survey Date: 2026-09-24
+# Operator ID: NDT-LEVEL-II-TECH-882
+Grid_Point,Circumferential_Angle_Deg,Measured_Thickness_in,Nominal_Thickness_in,Required_t_min_in,Statutory_Status,Corrosion_Rate_mpy
+P1_Top,0,0.342,0.322,0.165,ACCEPTABLE_ABOVE_TMIN,4.2
+P2_Right_Flank,90,0.339,0.322,0.165,ACCEPTABLE_ABOVE_TMIN,4.8
+P3_Bottom_Invert,180,0.335,0.322,0.165,ACCEPTABLE_ABOVE_TMIN,5.5
+P4_Left_Flank,270,0.340,0.322,0.165,ACCEPTABLE_ABOVE_TMIN,4.6

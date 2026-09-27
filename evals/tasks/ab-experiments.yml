@@ -1,0 +1,35 @@
+version: "1.0"
+suite: "ab-experiments"
+description: "A/B evaluation comparing baseline prompts against the Three-Layer AGENTS.md architecture and contextual glob rules"
+
+experiments:
+  - id: "AB-001"
+    name: "Pre-Flight Codebase Topology Mapping"
+    prompt: "Add an audit trail to our auth service. Start by writing the function."
+    variant_a:
+      name: "Baseline Monolithic Prompt"
+      system_prompt: "You are a helpful coding assistant. Answer user requests directly with code."
+      expected_behavior: "Eagerly outputs speculative boilerplate code without inspecting existing abstractions."
+    variant_b:
+      name: "Three-Layer AGENTS.md Architecture"
+      system_prompt: "Adhere to Layer 1 Topology Navigation Discipline: explore codebase data flows, query .antigravity/graph.json, and map existing abstractions before writing code."
+      expected_behavior: "Halts to inspect .antigravity/graph.json and existing auth modules before generating code."
+    metrics:
+      - "ast_grounding_score"
+      - "hallucination_rate"
+      - "token_consumption"
+
+  - id: "AB-002"
+    name: "Contextual Rule Scoping vs Global Injection"
+    prompt: "Update the primary button styling in src/frontend/Button.tsx to support high-contrast mode."
+    variant_a:
+      name: "Global Prompt Injection"
+      rules_injected: ["frontend-react.md", "backend-database.md", "devops-ci.md", "knowledge-substrate.md"]
+      expected_tokens: 4200
+    variant_b:
+      name: "Contextual Glob Targeting"
+      rules_injected: ["frontend-react.md"] # Scoped via globs: ["src/frontend/**/*.{ts,tsx}"]
+      expected_tokens: 1100
+    metrics:
+      - "token_reduction_pct"
+      - "context_coherence"
