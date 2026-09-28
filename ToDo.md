@@ -15,9 +15,19 @@
   - [x] Build Permitted Documents Vault with dense list/table layout, compact upload toolbar, Left Rail collections/filters (Collections, Security, Status), rich document rows with why-mounted popovers, and slide-over Document Inspector drawer (Integrity, Provenance, Version, Access, Used By Work Unit DAG, Why Mounted, SHA-256 copy, Open preview, and Lineage tracing) with genuine client-side Web Crypto SHA-256 Merkle leaf sealing
   - [x] Author Authentic Manual Input Files Suite (`sample_inputs/piping/` and `sample_inputs/codebase/`) for live hands-on manual ingestion demonstrations
   - [x] Implement Scenario 1: Pipeline CML thickness ingestion, ASME B31.3 Z3 SMT formal proof, and PSU deliverable package (`.docx` & `.xlsx`)
-  - [x] Implement Scenario 2: Dense 3-column IDE cockpit, compressed 95px header, hierarchical repository tree (`● Modified`, `✓ Verified`, `! Failed`), code editor anchor with line-number gutter and surgical diff highlighting, 4-tab evidence-driven Diagnostic Assistant (`Diagnosis`, `Evidence`, `Patch`, `Verification`) with strict epistemic separation between Model Belief (β) and Deterministic Assurance (α), horizontal Verification Pipeline strip, and collapsible bottom Execution Console drawer
+  - [x] Implement Scenario 2 Layout Hierarchy, Density & State Machine Overhaul:
+    - [x] Core layout primitive: 3 coordinated workspaces (`Repository` ~18% × `Code / Diff Editor` ~54% × `AI Engineer` ~28%) + full-width `Verification Pipeline` strip + full-width collapsible `Execution Console` (160-220px)
+    - [x] Eliminate unnatural editor viewport stretching; preserve code-proportional height with live footer (`Problems 0 | Warnings 0 [Format] [Compare]`)
+    - [x] Semantic repository state markers (`●` modified, `✓` verified, `⚠` attention) with Explorer / Changeset CS-00918 / Commit History views and operational Git badge (`⎇ main • 1 change` / `clean`)
+    - [x] Operational top bar with muted breadcrumb (`CASE / PSU-2026-0017 / src / physics / corrosion_evaluator.py`), air-gap badges, and state-machine-driven action buttons
+    - [x] AI Engineer diagnostic workspace overhaul: fixed header, fixed mode tabs, single active mode pane (no nested scrollbars/cards), fixed bottom action bar
+    - [x] Epistemic rigor: Probabilistic Model Signal (98.4%) cleanly separated to evidence diagnostics; Deterministic Assurance (`PASS 9/9`) dominating verification gates
+    - [x] Deterministic state machine: `Initial/Ready` → `Run Sandbox` → `Failure Detected` → `Diagnose Failure` → `Review Diff` → `Apply Patch` → `Verify Patch` → `Deploy Capability`
+    - [x] Zero-Scroll Single-Frame Cockpit: All 3 panels (Repository Explorer with docked sandbox spec card, Code Editor with diagnostics & line numbers, and AI Engineer Diagnostic Workspace with Ask AI prompt form) fit entirely inside a single 100vh viewport frame with 0 vertical page scrollbars. File tree, code buffer, and chat messages scroll strictly internally via bounded flex containers.
+    - [x] VS Code IDE File & Folder Explorer Interface: Hierarchical interactive collapsible carets (`▶` / `▼`), indent guide lines (`tree-indent-guide`), official file type icons (vector Python SVG, PyTest beaker, JSON braces, Markdown), full-row hover/active selection, amber `M` Git-modified badge, green `✓` verified badge, red `⚠` test-failure badge, and workspace action toolbar (`+` New File, `⤹⤸` Toggle All, `📁` Switch Workspace).
+    - [x] Elevated & Enlarged Execution Console & Background Fleet Drawers: Increased standard height to 285px (expandable to 380px via `⤢`/`⊡` maximize toggle), increased background fleet deck height to 240px, elevated top border/shadows with zero clipping on 9 test matrix items and summary footer, and widened Left Explorer panel to 22% (minWidth: 220px) for optimal readability.
   - [x] Implement Sovereign Audit & Telemetry Dock as expandable bottom console tray with hierarchical session milestone grouping, vertical timeline trees, zero-overflow flex scrolling (`minHeight: 0`), strict scroll isolation (wheel event capture & `overscroll-behavior: contain`), real-time timestamps, and JSON export (with clear button removed)
-  - [x] Validate build with Vite (0 errors, 312ms) and perform full end-to-end browser subagent verification
+  - [x] Validate build with Vite (0 errors, 457ms) and perform full end-to-end verification
 
 
 ---
@@ -114,3 +124,28 @@
 - [ ] Build Deliverables Drawer (`DeliverablesViewer.jsx`) with instant DOCX, PPTX, XLSX downloads and math proof viewers
 - [ ] Build discreet bottom status bar (`StatusBar.jsx`) rendering live air-gap, active lease, hardware profile, and SMT telemetry
 - [ ] Maintain 41 / 41 passing automated tests in `tests/test-hooks.js` and 100.0% weighted score on `coder-eval`
+
+---
+
+## Phase 11: Sovereign Developer Substrate & Multi-Agent Background Fabric [COMPLETED]
+- [x] Specify interactive code authoring architecture with dirty-state tracking, live problems count, and hotkey save (`Ctrl+S`)
+- [x] Specify workspace configuration schema with sandboxed root resolution and path traversal enforcement
+- [x] Design offline extensions and skills manager (`.agents/skills/`) compatible with Claude Code / Antigravity IDE
+- [x] Design asynchronous multi-agent background worker substrate with task queuing, step telemetry, and differential merge gate
+- [x] Implement interactive in-browser code editor with live syntax editing, line numbers, and file switching in `demo/`
+- [x] Implement workspace selector modal & path switcher with preset industrial repositories (`smitrace`, `refinery-core`, `api510-engine`)
+- [x] Implement offline extensions & skills drawer with 1-click install/toggle and offline package importer (`.agyskill`)
+- [x] Implement background subagents operations tray with concurrent agent dispatch, live progress, thinking logs, and patch merge gate
+
+---
+
+## Phase 12: Sovereign Glassmorphism Aesthetic & Tactile Design System [COMPLETED]
+- [x] Unify global design tokens (`--glass-bg`, `--glass-bg-elevated`, `--glass-bg-inset`, `--glass-border`, `--glass-blur`, `--glass-shadow-sm`)
+- [x] Replace flat opaque body background with 5-point warm champagne/platinum/gold orbital mesh for authentic backdrop refraction
+- [x] Upgrade all cards and layout columns (`leftCol`, `centerCol`, `rightCol`) to translucent frosted glass with specular highlight edges
+- [x] Implement Smoked Obsidian Glass (`.glass-obsidian`) for dark developer interfaces (Code Editor, Audit Terminal Dock, SMT Constraint Box)
+- [x] Implement Frosted Alabaster Glass Paper sheets (`.glass-paper`) for executive deliverables (DOCX Memo, XLSX Audit Matrix)
+- [x] Upgrade all interactive buttons, inputs, tabs, and modals to frosted glass controls (`.btn-glass`, `.modal-card`)
+- [x] Verify zero compilation errors with `npm run build` in `demo/`
+
+

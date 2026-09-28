@@ -10,6 +10,9 @@ export default function Header({
   onToggleDock,
   activeCaseId,
   systemStatus,
+  activeTab,
+  onSelectTab,
+  lastIngestedDoc,
 }) {
   const [showCryptoDropdown, setShowCryptoDropdown] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
@@ -85,7 +88,17 @@ export default function Header({
   const roleLabel = currentUser.id === 'engineer' ? 'PIPING ENGINEER' : 'CORE DEVELOPER';
 
   return (
-    <header style={styles.headerPanel} className="instrument-panel">
+    <header style={{
+      ...styles.headerPanel,
+      ...(activeTab === 'analysis' ? {
+        margin: '4px 14px 4px 14px',
+        padding: '5px 14px 4px 14px',
+        width: 'calc(100% - 28px)',
+        top: '4px',
+        gap: '2px',
+        flexShrink: 0,
+      } : {})
+    }} className="instrument-panel">
       {/* ===================================================================
           UPPER DECK: BRAND, TELEMETRY BAY, OPERATOR IDENTITY
           =================================================================== */}
@@ -223,13 +236,78 @@ export default function Header({
           </span>
         </div>
 
-        {/* Right: Functional Controls */}
+        {/* Center: View Navigation Switcher */}
+        {activeTab && onSelectTab && (
+          <div style={styles.viewTabs}>
+            <button
+              onClick={() => onSelectTab('vault')}
+              className={`btn-glass ${activeTab === 'vault' ? 'btn-primary-bold' : ''}`}
+              style={{
+                padding: '3px 12px',
+                fontSize: '0.72rem',
+                borderRadius: '6px',
+                background: activeTab === 'vault' 
+                  ? 'linear-gradient(135deg, rgba(28, 24, 20, 0.94) 0%, rgba(18, 15, 12, 0.98) 100%)' 
+                  : 'rgba(255, 255, 255, 0.45)',
+                color: activeTab === 'vault' ? '#faf7f2' : 'var(--text-main)',
+                borderColor: activeTab === 'vault' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                fontWeight: '700',
+                cursor: 'pointer',
+              }}
+              title="Return to Document Ingestion Vault"
+            >
+              {activeTab === 'analysis' ? '← Back to Document Vault' : '📂 Document Vault'}
+            </button>
+            <button
+              onClick={() => onSelectTab('analysis')}
+              className={`btn-glass ${activeTab === 'analysis' ? 'btn-primary-bold' : ''}`}
+              style={{
+                padding: '3px 12px',
+                fontSize: '0.72rem',
+                borderRadius: '6px',
+                background: activeTab === 'analysis' 
+                  ? 'linear-gradient(135deg, rgba(28, 24, 20, 0.94) 0%, rgba(18, 15, 12, 0.98) 100%)' 
+                  : 'rgba(255, 255, 255, 0.45)',
+                color: activeTab === 'analysis' ? '#faf7f2' : 'var(--text-main)',
+                borderColor: activeTab === 'analysis' ? 'rgba(255, 255, 255, 0.25)' : 'rgba(255, 255, 255, 0.7)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                fontWeight: '700',
+                cursor: 'pointer',
+              }}
+            >
+              ⚡ Analysis Cockpit
+            </button>
+          </div>
+        )}
+
+        {/* Right: Functional Controls & Fixture Ingestion Status */}
         <div style={styles.controlsGroup}>
+          {activeTab === 'analysis' && (
+            lastIngestedDoc ? (
+              <span className="badge badge-gold" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
+                ⚡ Ingested: {lastIngestedDoc.name}
+              </span>
+            ) : (
+              <span className="mono-tag" style={{ fontSize: '0.66rem', padding: '2px 7px' }}>
+                Sovereign Fixtures Active
+              </span>
+            )
+          )}
+
           <button
             onClick={onToggleDock}
             className="btn-glass"
-            style={styles.auditBtn}
-            title="Open system activity & audit log"
+            style={{
+              ...styles.auditBtn,
+              background: isDockOpen ? 'rgba(214, 168, 98, 0.35)' : 'rgba(255, 255, 255, 0.65)',
+              border: isDockOpen ? '1px solid var(--accent-gold)' : '1px solid rgba(255, 255, 255, 0.85)',
+              outline: isDockOpen ? '1px solid var(--accent-gold)' : '1px solid rgba(195, 180, 155, 0.4)',
+              boxShadow: isDockOpen ? '0 0 12px rgba(154, 103, 26, 0.3)' : '0 1px 4px rgba(45, 36, 25, 0.05)',
+            }}
+            title={isDockOpen ? "Close forensic audit ledger" : "Open forensic audit ledger"}
           >
             <span className="pulse-dot pulse-green" style={{ width: '6px', height: '6px' }} />
             <span style={{ fontWeight: '800', letterSpacing: '0.04em' }}>AUDIT LOG</span>
@@ -246,14 +324,14 @@ const styles = {
   headerPanel: {
     position: 'sticky',
     top: '6px',
-    maxWidth: '1360px',
-    width: 'calc(100% - 24px)',
-    margin: '6px auto 12px auto',
-    padding: '6px 14px 4px 14px',
+    width: 'calc(100% - 32px)',
+    margin: '6px 16px 14px 16px',
+    padding: '8px 18px 6px 18px',
     zIndex: 200,
     display: 'flex',
     flexDirection: 'column',
     gap: '4px',
+    boxSizing: 'border-box',
   },
   upperDeck: {
     display: 'flex',
@@ -434,13 +512,15 @@ const styles = {
     top: 'calc(100% + 5px)',
     right: '0',
     width: '300px',
-    padding: '11px',
-    borderRadius: '9px',
-    border: '1px solid rgba(255, 255, 255, 0.85)',
-    boxShadow: '0 10px 28px rgba(40, 32, 22, 0.12)',
+    padding: '12px',
+    borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.95)',
+    outline: '1px solid rgba(195, 180, 155, 0.4)',
+    boxShadow: '0 16px 40px rgba(40, 32, 22, 0.16), inset 0 1px 1px #ffffff',
     zIndex: 250,
-    background: 'rgba(252, 250, 246, 0.95)',
-    backdropFilter: 'blur(16px)',
+    background: 'rgba(254, 251, 245, 0.88)',
+    backdropFilter: 'blur(24px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
   },
   popoverHeader: {
     display: 'flex',
@@ -526,6 +606,11 @@ const styles = {
     fontSize: '0.65rem',
     fontWeight: '700',
   },
+  viewTabs: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
   caseIdText: {
     color: '#1e1a15',
     fontWeight: '800',
@@ -546,11 +631,9 @@ const styles = {
   auditBtn: {
     padding: '3px 8px',
     fontSize: '0.65rem',
-    borderRadius: '4px',
+    borderRadius: '6px',
     minHeight: '22px',
     gap: '4px',
-    background: '#ffffff',
-    border: '1px solid #c5baa8',
     color: '#181512',
   },
   auditCountTag: {

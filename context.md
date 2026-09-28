@@ -151,3 +151,10 @@ smitrace/
 7. **Atomic Two-Phase Commit**: Unverified drafts quarantine in `staging/{lease_id}/`; promotion to `cases/{case_id}/` occurs strictly post-verification.
 8. **Boundary Hardening**: Finite float clamping (`-999999.0`), defensive division guards, mTLS proxy filtering, and AST forbidden modules denylist.
 9. **Air-Gap Tri-Index Grounding**: Local Tantivy lexical + HNSW vector + metadata search grounded in organization manuals, SOPs, and past correspondence with cryptographic chunk provenance.
+10. **Interactive Code Authoring**: In-situ code buffer edits with live dirty tracking, instant syntax problem evaluation, and non-blocking AST checks.
+11. **Strict Workspace Boundary Isolation**: All path resolutions and sandboxed operations are securely scoped within the user-specified workspace root, rejecting path traversals.
+12. **Offline Extension & Skill Parity**: Skills and extensions adhere to the `.agents/skills/<name>/SKILL.md` declarative contract, discoverable offline with zero WAN dependencies.
+13. **Asynchronous Multi-Agent Concurrency**: Background subagents execute non-blockingly with distinct task IDs, isolated memory/CPU quotas, live step telemetry, and non-destructive differential merge gates into the active buffer.
+14. **Sovereign Glassmorphism Optical Invariant**: All workbench surfaces strictly adhere to a 5-layer optical composite model: multi-point ambient orbital mesh background, translucent frosted glass panes (`.glass-card`, `.glass-elevated`), specular perimeter reflections (`inset 0 1px 1px #ffffff`, `1px solid var(--glass-border)`), Smoked Obsidian Glass (`.glass-obsidian`) for dark developer interfaces (Code Editor, Audit Terminal Dock, SMT Constraint Box), and Frosted Alabaster Glass Paper sheets (`.glass-paper`) for executive deliverables (DOCX Memo, XLSX Audit Matrix). Flat, opaque solid fills (`#ffffff`, `#141210`, `#faf7f0`) are strictly banned.
+
+

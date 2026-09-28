@@ -133,6 +133,39 @@ Departing from rigid, single-model linear pipelines and ungrounded conversationa
 * **FR-8.1**: Enforces default drop firewall rules (`nftables`) with kernel-level eBPF Tetragon audits asserting 0 outbound WAN packets.
 * **FR-8.2**: Records all events, tool calls, and user interventions in an encrypted SQLite WAL Merkle log with SHA-256 hash chaining.
 
+#### FR-9: Engineering Code Lab Coordinated Workspace & State Machine
+* **FR-9.1**: The engineering code lab must enforce the three coordinated workspaces layout primitive:
+  - Top 3 Columns: `Repository` (~18% with Explorer, Changeset, History views and semantic markers `●` modified, `✓` verified, `⚠` attention) × `Code / Diff Editor` (~54% with 3 layers: Header, Monospace Code Body, Live Footer) × `AI Engineer Diagnostic Workspace` (~28% with fixed header, fixed tabs, scrollable active-mode pane, fixed action bar).
+  - Middle: Full-width `Verification Pipeline` strip (`AST Security ✓ → Sandbox ✓ → Test Matrix (9/9) ✓ → Domain Contract ✓ → SMT Solver ✓`).
+  - Bottom: Full-width `Execution Console` (default height 160-220px, collapsible with status summary, live stdout / test output).
+* **FR-9.2**: The interface must follow a deterministic state machine journey rather than static buttons: `Initial/Ready` → `Run Sandbox` → `Failure Detected` → `Diagnose Failure` → `Patch Proposed` → `Review Diff` → `Apply Patch` → `Verify Patch` → `Verification Passed` → `Deploy Capability`.
+* **FR-9.3**: Strict visual and epistemic separation must be maintained between probabilistic `Model Signal` (e.g. 98.4%) and deterministic `Assurance` (e.g. `PASS 9/9`). The editor must never stretch empty space to fill viewports; unused vertical space must resolve to system execution state.
+
+#### FR-10: Interactive Sovereign Code Editor & Direct Authoring
+* **FR-10.1**: Users must be able to actively author and edit source code directly within the workbench editor (supporting full interactive editing, line numbering, dirty state tracking, indentation, and hot-key save `Ctrl+S`).
+* **FR-10.2**: The editor must provide immediate AST syntax verification, active problem/warning tallies, and direct reconciliation between user edits and AI agent proposals.
+* **FR-10.3**: Supports dynamic file addition, buffer switching, and inline diff comparison without requiring full environment reloads.
+
+#### FR-11: Configurable Workspace Specification & Multi-Project Isolation
+* **FR-11.1**: The system must allow users to specify, configure, and switch active workspace roots (e.g. local directory paths, industrial project repositories, or custom isolated folders).
+* **FR-11.2**: Workspace switching must dynamically remount the active file tree, isolated sandboxes, configuration manifests, and project-specific `.agents/skills` directories with strict path boundary enforcement (preventing traversal outside the designated root).
+
+#### FR-12: Air-Gapped Offline Extensions & Skills Substrate
+* **FR-12.1**: The workbench must include an offline extensions and skills manager allowing users to browse, inspect, install, enable, and disable skills without WAN connectivity.
+* **FR-12.2**: Skills must follow declarative conventions (`SKILL.md` with YAML frontmatter, tool definitions, and statutory compliance tiers) compatible with Claude Code and Antigravity IDE paradigms.
+* **FR-12.3**: Supports installing skills from local air-gap cache repositories and importing signed offline extension packages (`.agyskill` / `.tar.gz`) directly into `.agents/skills/`.
+
+#### FR-13: Asynchronous Multi-Agent Background Task Orchestration
+* **FR-13.1**: The workbench must be capable of dispatching ("throwing") multiple autonomous background agents simultaneously while the user continues to code interactively in the foreground.
+* **FR-13.2**: Each background agent must execute within an isolated worker context, tracking its own task ID, execution phase, CPU/token consumption, and live thinking/action traces.
+* **FR-13.3**: The workbench must provide a persistent, non-intrusive Background Agents Tray / Operations Deck displaying active worker concurrency, live progress bars, pause/cancel controls, and differential patch review for merging agent results directly into the active editor buffer.
+
+#### FR-14: Sovereign Glassmorphism Aesthetic & Tactile Design System
+* **FR-14.1**: Complete elimination of flat, solid opaque surfaces (`#ffffff`, `#141210`, `#faf7f0`). All cards, panels, inputs, and overlays must utilize optical translucency (alpha `0.65` to `0.88`), multi-tier box shadows, specular highlight borders (`inset 0 1px 1px #ffffff`, `1px solid var(--glass-border)`), and true hardware-accelerated `backdrop-filter: blur(...) saturate(...)`.
+* **FR-14.2**: The workbench body must render an ambient multi-point warm champagne/platinum/gold orbital mesh gradient to provide authentic optical chromatic refraction through translucent glass panes.
+* **FR-14.3**: Smoked Obsidian Glass (`rgba(26, 24, 21, 0.88)` with `backdrop-filter: blur(18px)`) must be strictly applied across all developer and terminal dark surfaces (Code Editor window, Audit Terminal dock, SMT constraint boxes, execution consoles).
+* **FR-14.4**: Document Deliverables (statutory DOCX inspection memos, multi-tab XLSX audit matrices) must render as tactile Frosted Alabaster Glass Paper sheets (`rgba(255, 255, 255, 0.78)` with `blur(24px)` and specular perimeter highlights) rather than flat opaque white sheets.
+
 ---
 
 ### 5. Statutory & Regulatory Compliance Specifications

@@ -5,7 +5,6 @@ export default function AuditTerminalDock({
   isOpen = true, 
   onToggle,
   embedded = false,
-  onClearLogs,
 }) {
   const [filterActor, setFilterActor] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
@@ -193,15 +192,6 @@ export default function AuditTerminalDock({
           <span style={{ fontSize: '0.68rem', color: '#9e917e', fontFamily: "'JetBrains Mono', monospace" }}>
             100% Verified Activity Log
           </span>
-          {onClearLogs && (
-            <button 
-              style={{ ...styles.toggleBtn, background: '#3a201d', borderColor: '#692a24', color: '#fca5a5' }} 
-              onClick={(e) => { e.stopPropagation(); onClearLogs(); }}
-              title="Clear log stream"
-            >
-              Clear
-            </button>
-          )}
           {!embedded && (
             <button style={styles.toggleBtn} onClick={(e) => { e.stopPropagation(); onToggle && onToggle(); }}>
               ✕ Close
@@ -355,13 +345,15 @@ const styles = {
     height: '620px',
     minHeight: '500px',
     width: '100%',
-    background: '#191614',
-    border: '1px solid #3d352b',
-    borderRadius: '12px',
+    background: 'rgba(25, 22, 20, 0.88)',
+    backdropFilter: 'blur(24px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    borderRadius: '14px',
     color: '#e6dac8',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45)',
+    boxShadow: '0 16px 40px rgba(0, 0, 0, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
     overflow: 'hidden',
   },
   dockWrapper: {
@@ -371,14 +363,16 @@ const styles = {
     right: 0,
     height: '380px',
     maxHeight: '80vh',
-    background: '#191614',
-    borderTop: '2px solid #3d352b',
+    background: 'rgba(25, 22, 20, 0.88)',
+    backdropFilter: 'blur(24px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+    borderTop: '1px solid rgba(255, 255, 255, 0.15)',
     color: '#e6dac8',
-    zIndex: 100,
+    zIndex: 1200,
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.55)',
-    transition: 'transform 0.32s cubic-bezier(0.16, 1, 0.3, 1)',
+    boxShadow: '0 -16px 50px rgba(0, 0, 0, 0.65), inset 0 1px 1px rgba(255, 255, 255, 0.15)',
+    transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)',
     overflow: 'hidden',
     overscrollBehavior: 'contain',
   },
@@ -390,8 +384,10 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     cursor: 'pointer',
-    background: '#1e1a16',
-    borderBottom: '1px solid #2e2720',
+    background: 'rgba(30, 26, 22, 0.85)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
     flexShrink: 0,
   },
   barLeft: {
@@ -415,8 +411,10 @@ const styles = {
     flexShrink: 0,
   },
   toggleBtn: {
-    background: '#352e25',
-    border: '1px solid #4d4336',
+    background: 'rgba(53, 46, 37, 0.8)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
     color: '#faf4e8',
     padding: '3px 9px',
     borderRadius: '5px',
@@ -433,8 +431,10 @@ const styles = {
   },
   filterBar: {
     padding: '6px 20px',
-    background: '#151311',
-    borderBottom: '1px solid #2e2720',
+    background: 'rgba(21, 19, 17, 0.8)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -461,8 +461,10 @@ const styles = {
     gap: '10px',
   },
   searchInput: {
-    background: '#231f1a',
-    border: '1px solid #3d352b',
+    background: 'rgba(35, 31, 26, 0.7)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
     borderRadius: '5px',
     color: '#ebdcc3',
     padding: '3px 8px',
@@ -481,8 +483,10 @@ const styles = {
     fontFamily: "'JetBrains Mono', monospace",
   },
   actionBtn: {
-    background: '#2d261e',
-    border: '1px solid #4a3e30',
+    background: 'rgba(45, 38, 30, 0.8)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
     color: '#ebdcc3',
     padding: '3px 8px',
     borderRadius: '5px',
@@ -499,7 +503,7 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: '14px',
-    background: '#191614',
+    background: 'transparent',
     overscrollBehavior: 'contain',
   },
   emptyLog: {
@@ -510,8 +514,11 @@ const styles = {
     fontSize: '0.84rem',
   },
   sessionCard: {
-    background: 'rgba(32, 28, 24, 0.65)',
-    border: '1px solid #322b22',
+    background: 'rgba(36, 31, 26, 0.65)',
+    backdropFilter: 'blur(14px)',
+    WebkitBackdropFilter: 'blur(14px)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.06)',
     borderRadius: '8px',
     padding: '10px 14px',
     display: 'flex',

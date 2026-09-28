@@ -116,8 +116,9 @@ export default function CryptoLogin({ onLogin, addAuditLog }) {
                 onClick={() => handleSelect(p)}
                 style={{
                   ...styles.personaCard,
-                  borderColor: isSelected ? 'var(--accent-gold)' : 'var(--glass-border)',
-                  background: isSelected ? 'rgba(255, 253, 248, 0.95)' : 'var(--glass-bg)',
+                  borderColor: isSelected ? 'var(--accent-gold)' : 'var(--glass-border-highlight)',
+                  outline: isSelected ? '2px solid var(--accent-gold)' : '1px solid var(--glass-border)',
+                  background: isSelected ? 'var(--glass-bg-elevated)' : 'var(--glass-bg)',
                   boxShadow: isSelected ? '0 12px 32px rgba(154, 103, 26, 0.16)' : 'var(--glass-shadow)',
                   transform: isSelected ? 'translateY(-2px)' : 'none',
                 }}
@@ -321,7 +322,8 @@ const styles = {
   },
   handshakePanel: {
     padding: '24px 28px',
-    background: 'rgba(255, 253, 248, 0.85)',
+    background: 'var(--glass-bg-elevated)',
+    borderRadius: '16px',
   },
   handshakeMeta: {
     display: 'flex',

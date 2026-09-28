@@ -81,3 +81,12 @@ Thumbs.db
 *.swp
 *.swo
 
+# Cache, Evals & Regenerable Architecture Visual Vault
+graphify-out/
+evals/results/
+docs/architecture/
+tests/temp/
+tests/audit-temp/
+tests/audit-temp-test/
+
+

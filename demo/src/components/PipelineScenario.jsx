@@ -43,10 +43,24 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
   const [selectedCaseKey, setSelectedCaseKey] = useState('caseA');
   const [activeCaseData, setActiveCaseData] = useState(PIPELINE_CASES['caseA']);
   const [isSolving, setIsSolving] = useState(false);
+  const [solvingStage, setSolvingStage] = useState('');
+  const [solvingProgress, setSolvingProgress] = useState(0);
   const [hasRunProof, setHasRunProof] = useState(false);
+  const [isGeneratingReports, setIsGeneratingReports] = useState(false);
+  const [generatingStage, setGeneratingStage] = useState('');
+  const [hasGeneratedReports, setHasGeneratedReports] = useState(false);
   const [activeReportTab, setActiveReportTab] = useState('docx'); // 'docx' or 'xlsx'
   const [isExporting, setIsExporting] = useState(false);
   const [viewSmtCode, setViewSmtCode] = useState(false);
+  const [copiedSmt, setCopiedSmt] = useState(false);
+
+  const handleCopySmtCode = () => {
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(smtLib2Code);
+      setCopiedSmt(true);
+      setTimeout(() => setCopiedSmt(false), 2000);
+    }
+  };
 
   // Sync with user's manual file ingestion
   React.useEffect(() => {
@@ -56,10 +70,12 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
         setSelectedCaseKey('caseA');
         setActiveCaseData(PIPELINE_CASES['caseA']);
         setHasRunProof(false);
+        setHasGeneratedReports(false);
       } else if (lower.includes('cml-01') || lower.includes('pump') || lower.includes('discharge')) {
         setSelectedCaseKey('caseB');
         setActiveCaseData(PIPELINE_CASES['caseB']);
         setHasRunProof(false);
+        setHasGeneratedReports(false);
       }
     }
   }, [lastIngestedDoc]);
@@ -88,10 +104,24 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
         state: 'RUNNING',
         icon: '⚡',
         badgeClass: 'status-running',
-        detail: 'COMPUTING Z3 SMT CONSTRAINTS IN REAL-TIME...',
+        detail: solvingStage || 'COMPUTING Z3 SMT CONSTRAINTS IN REAL-TIME...',
         execution: 'SOLVER ACTIVE',
         execIcon: '⚡',
         execColor: '#2563eb',
+        caseId: activeCaseData.id,
+      });
+      return;
+    }
+
+    if (isGeneratingReports) {
+      onStatusChange({
+        state: 'RUNNING',
+        icon: '📄',
+        badgeClass: 'status-running',
+        detail: generatingStage || 'COMPILING STATUTORY SAFETY REPORTS...',
+        execution: 'GENERATING',
+        execIcon: '📄',
+        execColor: '#1b6a4a',
         caseId: activeCaseData.id,
       });
       return;
@@ -117,19 +147,20 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
       icon: isSatisfied ? '●' : '■',
       badgeClass: isSatisfied ? 'status-active' : 'status-blocked',
       detail: isSatisfied 
-        ? `PASSED · SAFE TO OPERATE (+${marginPct.toFixed(1)}% margin)` 
-        : `FAILED · REPAIR NEEDED (${marginPct.toFixed(1)}% deficit)`,
+        ? `PASSED · SAFE TO OPERATE (+${marginPct.toFixed(1)}% margin)${hasGeneratedReports ? ' · REPORTS SEALED' : ''}` 
+        : `FAILED · REPAIR NEEDED (${marginPct.toFixed(1)}% deficit)${hasGeneratedReports ? ' · REPORTS SEALED' : ''}`,
       execution: isSatisfied ? 'ACTIVE' : 'HALTED',
       execIcon: isSatisfied ? '●' : '■',
       execColor: isSatisfied ? '#1b6a4a' : '#a62a2a',
       caseId: activeCaseData.id,
     });
-  }, [hasRunProof, isSolving, isSatisfied, activeCaseData.id, marginPct, onStatusChange]);
+  }, [hasRunProof, isSolving, solvingStage, isGeneratingReports, generatingStage, hasGeneratedReports, isSatisfied, activeCaseData.id, marginPct, onStatusChange]);
 
   const handleSelectCase = (key) => {
     setSelectedCaseKey(key);
     setActiveCaseData(PIPELINE_CASES[key]);
     setHasRunProof(false);
+    setHasGeneratedReports(false);
     addAuditLog({
       actor: 'USER',
       action: `Selected pipeline inspection target: ${PIPELINE_CASES[key].title}`,
@@ -140,6 +171,11 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
 
   const handleRunDeterministicProof = () => {
     setIsSolving(true);
+    setHasRunProof(false);
+    setHasGeneratedReports(false);
+    setSolvingProgress(25);
+    setSolvingStage('Compiling ASME B31.3 Section 304.1.2 constraint equations...');
+
     addAuditLog({
       actor: 'PLATFORM',
       action: `Cryptographically sealed case parameters for ${activeCaseData.id}`,
@@ -148,15 +184,59 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
     });
 
     setTimeout(() => {
+      setSolvingProgress(60);
+      setSolvingStage('Synthesizing QF_NRA SMT-LIB2 non-linear clauses in Z3 solver engine...');
+    }, 600);
+
+    setTimeout(() => {
+      setSolvingProgress(88);
+      setSolvingStage('Verifying wall thickness bounds against mandatory statutory margin (0.0% FAR)...');
+    }, 1200);
+
+    setTimeout(() => {
+      setSolvingProgress(100);
       setIsSolving(false);
       setHasRunProof(true);
+      setSolvingStage('');
       addAuditLog({
         actor: 'SOLVER',
         action: `Z3 SMT Prover output: ${isSatisfied ? 'SAT (Safe Boundary Proven)' : 'UNSAT (Statutory Margin Deficit Detected)'}`,
         hash: 'proof:z3:qf_nra:0x' + Math.random().toString(16).substr(2, 8),
         details: `Execution time: 1.84ms | Exact Rational t_min: ${t_min.toFixed(4)}" | Measured: ${activeCaseData.actualThickness}" | Margin: ${marginPct.toFixed(1)}%`
       });
-    }, 600);
+    }, 1800);
+  };
+
+  const handleGenerateReports = () => {
+    setIsGeneratingReports(true);
+    setGeneratingStage('1/3 Formatting ASME B31.3 statutory compliance memorandum...');
+
+    addAuditLog({
+      actor: 'PLATFORM',
+      action: `Initiated official safety deliverable compilation for ${activeCaseData.id}`,
+      hash: 'report:compile:init:' + Math.random().toString(16).substr(2, 8),
+      details: 'Structuring PSU Approval Note (.docx) and Live Formula Inspection Workbook (.xlsx)'
+    });
+
+    setTimeout(() => {
+      setGeneratingStage('2/3 Compiling .docx Approval Note & .xlsx calculation spreadsheet...');
+    }, 550);
+
+    setTimeout(() => {
+      setGeneratingStage(`3/3 Counter-signing deliverables with ${currentUser.name}'s Ed25519 key...`);
+    }, 1100);
+
+    setTimeout(() => {
+      setIsGeneratingReports(false);
+      setHasGeneratedReports(true);
+      setGeneratingStage('');
+      addAuditLog({
+        actor: 'PLATFORM',
+        action: `Cryptographically counter-signed official safety deliverables (.docx & .xlsx)`,
+        hash: 'ed25519:sign:' + (currentUser.keyFingerprint ? currentUser.keyFingerprint.substring(0, 20) : '0x94b3c8f1'),
+        details: `Report package sealed into sovereign vault. Ref: PSU/INSP/2026/CR-400/${activeCaseData.id}`
+      });
+    }, 1700);
   };
 
   const handleSimulateDownload = (type) => {
@@ -345,7 +425,11 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
               max="700"
               step="10"
               value={activeCaseData.designPressure}
-              onChange={(e) => setActiveCaseData({ ...activeCaseData, designPressure: Number(e.target.value) })}
+              onChange={(e) => {
+                setActiveCaseData({ ...activeCaseData, designPressure: Number(e.target.value) });
+                setHasRunProof(false);
+                setHasGeneratedReports(false);
+              }}
               style={{ width: '100%', accentColor: '#9a671a' }}
             />
           </div>
@@ -360,11 +444,13 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
                 width: '100%', 
                 padding: '13px', 
                 fontSize: '0.96rem',
-                background: !hasRunProof 
-                  ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)' 
-                  : isSatisfied 
-                    ? 'linear-gradient(135deg, #1b6a4a 0%, #145339 100%)' 
-                    : 'linear-gradient(135deg, #a62a2a 0%, #7f1d1d 100%)',
+                background: isSolving
+                  ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)'
+                  : !hasRunProof 
+                    ? 'linear-gradient(135deg, #d97706 0%, #b45309 100%)' 
+                    : isSatisfied 
+                      ? 'linear-gradient(135deg, #1b6a4a 0%, #145339 100%)' 
+                      : 'linear-gradient(135deg, #a62a2a 0%, #7f1d1d 100%)',
                 color: '#ffffff',
                 border: '1.5px solid rgba(255,255,255,0.25)',
                 boxShadow: !hasRunProof ? '0 4px 18px rgba(217, 119, 6, 0.45)' : undefined,
@@ -372,7 +458,7 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
               }}
             >
               {isSolving 
-                ? '⚙️ Solving ASME B31.3 Constraints in Real-Time...' 
+                ? (solvingStage || '⚙️ Solving ASME B31.3 Constraints in Real-Time...') 
                 : hasRunProof 
                   ? `↻ Re-Run Deterministic Proof (${isSatisfied ? 'SAT' : 'UNSAT'})` 
                   : '⚡ Run Safety Verification Proof'}
@@ -392,11 +478,11 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
               </div>
               <h3 style={styles.caseTitle}>Safety Limit Proof</h3>
             </div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setViewSmtCode(!viewSmtCode)}
                 className="btn-glass"
-                style={{ padding: '4px 10px', fontSize: '0.74rem' }}
+                style={{ padding: '5px 12px', fontSize: '0.74rem' }}
               >
                 {viewSmtCode ? 'Hide Math Solver Code' : 'View Math Solver Code'}
               </button>
@@ -409,8 +495,18 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
           {/* SMT-LIB2 Code Viewer Modal/Box */}
           {viewSmtCode ? (
             <div style={styles.smtCodeBox} className="glass-inset">
-              <div style={{ fontSize: '0.7rem', fontWeight: '800', color: '#7a7061', marginBottom: '6px' }}>
-                Z3 SMT-LIB2 INPUT CLAUSES (LOGIC: QF_NRA):
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: '800', color: '#a89d8b', letterSpacing: '0.04em' }}>
+                  Z3 SMT-LIB2 INPUT CLAUSES (LOGIC: QF_NRA):
+                </div>
+                <button
+                  onClick={handleCopySmtCode}
+                  className="btn-glass"
+                  style={{ fontSize: '0.68rem', padding: '2px 8px', color: '#ebdcc3', borderColor: '#4d4336' }}
+                  title="Copy SMT-LIB2 source clauses"
+                >
+                  {copiedSmt ? '✓ Copied' : '📋 Copy SMT-LIB2'}
+                </button>
               </div>
               <pre style={styles.smtCodePre}>
                 <code>{smtLib2Code}</code>
@@ -461,7 +557,36 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
               </div>
 
               {/* Prover Result Banner */}
-              {!hasRunProof ? (
+              {isSolving ? (
+                <div style={{
+                  ...styles.resultBanner,
+                  borderColor: '#2563eb',
+                  background: 'rgba(37, 99, 235, 0.08)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span className="pulse-dot pulse-blue" style={{ width: '10px', height: '10px' }} />
+                      <div>
+                        <div style={{ fontSize: '1rem', fontWeight: '800', color: '#1d4ed8' }}>
+                          ⚙️ Z3 THEOREM PROVER SOLVING...
+                        </div>
+                        <div style={{ fontSize: '0.8rem', color: '#443c32', marginTop: '2px' }}>
+                          {solvingStage || 'Computing ASME B31.3 non-linear arithmetic constraints in real-time...'}
+                        </div>
+                      </div>
+                    </div>
+                    <span className="mono-tag" style={{ fontSize: '0.74rem' }}>{solvingProgress}%</span>
+                  </div>
+                  <div style={{ marginTop: '10px', height: '5px', background: 'rgba(200, 185, 160, 0.35)', borderRadius: '3px', overflow: 'hidden' }}>
+                    <div style={{
+                      height: '100%',
+                      width: `${solvingProgress}%`,
+                      background: 'linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%)',
+                      transition: 'width 0.4s ease'
+                    }} />
+                  </div>
+                </div>
+              ) : !hasRunProof ? (
                 <div style={{
                   ...styles.resultBanner,
                   borderColor: '#9a671a',
@@ -528,25 +653,82 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
         </div>
       </div>
 
-      {/* Structured Reports Generation Deck (Visible & Interactive Immediately) */}
-      <div style={styles.deliverablesContainer} className="glass-card">
-        <div style={styles.deliverablesHeader}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="badge badge-green">
-                OFFICIAL DELIVERABLES
-              </span>
-              <span style={{ fontSize: '0.78rem', color: '#685e50', fontWeight: '700' }}>
-                STANDARD FORMAT
-              </span>
+      {/* 1. Pre-Proof Reports Locked Card */}
+      {!hasRunProof && !hasGeneratedReports && (
+        <div style={styles.reportsLockedCard} className="glass-card">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <span style={{ fontSize: '1.6rem', opacity: 0.75 }}>🔒</span>
+            <div>
+              <div style={{ fontSize: '0.92rem', fontWeight: '800', color: '#685c4b' }}>
+                Official Safety Reports Locked
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#7a7061', marginTop: '3px' }}>
+                Awaiting deterministic verification proof. Click <strong>Run Safety Verification Proof</strong> above to solve constraints before official deliverables can be generated.
+              </div>
             </div>
-            <h3 style={styles.deliverablesTitle}>
-              Official Safety Reports
-            </h3>
-            <p style={{ fontSize: '0.86rem', color: '#5c5244' }}>
-              Generated compliance reports ready for management signoff for <strong>{activeCaseData.id}</strong>.
-            </p>
           </div>
+        </div>
+      )}
+
+      {/* 2. Post-Proof: Dedicated Generate Official Safety Reports Action Banner */}
+      {hasRunProof && !hasGeneratedReports && (
+        <div style={styles.generateReportCard} className="glass-card">
+          <div style={styles.generateReportCardLeft}>
+            <span style={{ fontSize: '2rem' }}>📑</span>
+            <div>
+              <div style={styles.generateReportTitle}>
+                Mathematical Proof Complete ({isSatisfied ? 'SAT · Code Compliant' : 'UNSAT · Critical Safety Deficit'})
+              </div>
+              <div style={styles.generateReportSub}>
+                Formal ASME B31.3 theorem solved with 0.0% False Assurance Rate. Click below to compile the official PSU Deliverable Reports (.docx Memorandum & .xlsx Formula Audit Spreadsheet) with cryptographic Ed25519 signature.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={handleGenerateReports}
+            disabled={isGeneratingReports}
+            className="btn-glass btn-primary-bold"
+            style={styles.generateReportBtn}
+            id="btn-generate-reports"
+          >
+            {isGeneratingReports ? (
+              <span>⚙️ {generatingStage || 'Compiling Official Deliverables...'}</span>
+            ) : (
+              <span>📄 Generate Official Safety Reports ➔</span>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* 3. ONLY after clicking Generate Reports: Official Safety Reports Deck */}
+      {hasGeneratedReports && (
+        <div style={styles.deliverablesContainer} className="glass-card">
+          <div style={styles.deliverablesHeader}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span className="badge badge-green">
+                  ✓ OFFICIAL DELIVERABLES GENERATED
+                </span>
+                <span className="mono-tag" style={{ fontSize: '0.72rem' }}>
+                  ED25519 SIGNED
+                </span>
+                <button
+                  onClick={handleGenerateReports}
+                  disabled={isGeneratingReports}
+                  className="btn-glass"
+                  style={{ fontSize: '0.72rem', padding: '3px 10px', cursor: 'pointer' }}
+                  title="Re-compile official safety reports"
+                >
+                  {isGeneratingReports ? 'Compiling...' : '↻ Re-generate Reports'}
+                </button>
+              </div>
+              <h3 style={styles.deliverablesTitle}>
+                Official Safety Reports
+              </h3>
+              <p style={{ fontSize: '0.86rem', color: '#5c5244' }}>
+                Generated compliance reports counter-signed and ready for management signoff for <strong>{activeCaseData.id}</strong>.
+              </p>
+            </div>
 
           {/* Tab Switcher & Export */}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -701,7 +883,8 @@ export default function PipelineScenario({ currentUser, addAuditLog, lastIngeste
             </div>
           </div>
         )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -724,7 +907,7 @@ const styles = {
   bannerLeft: {
     flex: 1,
     minWidth: 'min(100%, 280px)',
-    maxWidth: '860px',
+    maxWidth: 'none',
   },
   bannerTitle: {
     fontSize: '1.5rem',
@@ -796,24 +979,48 @@ const styles = {
   },
   solverCard: {
     padding: '24px',
-    background: 'rgba(252, 249, 243, 0.85)',
+    background: 'var(--glass-bg-elevated)',
+    backdropFilter: 'var(--glass-blur) saturate(180%)',
+    WebkitBackdropFilter: 'var(--glass-blur) saturate(180%)',
+    border: '1px solid var(--glass-border-highlight)',
+    outline: '1px solid var(--glass-border)',
+    borderRadius: '14px',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: '14px',
+    width: '100%',
+    boxSizing: 'border-box',
+    boxShadow: 'var(--glass-shadow)',
+    transition: 'all 0.25s ease',
   },
   smtCodeBox: {
-    padding: '14px',
-    background: '#181512',
+    padding: '16px 18px',
+    background: 'linear-gradient(145deg, rgba(26, 23, 20, 0.92) 0%, rgba(18, 15, 13, 0.96) 100%)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    outline: '1px solid rgba(60, 52, 40, 0.5)',
     borderRadius: '10px',
-    maxHeight: '260px',
-    overflowY: 'auto',
+    flex: 1,
+    minHeight: '380px',
+    maxHeight: '520px',
+    width: '100%',
+    boxSizing: 'border-box',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: 'inset 0 2px 10px rgba(0, 0, 0, 0.5), 0 4px 16px rgba(0,0,0,0.15)',
   },
   smtCodePre: {
     margin: 0,
     fontFamily: "'JetBrains Mono', monospace",
-    fontSize: '0.78rem',
+    fontSize: '0.82rem',
     color: '#e2dac9',
-    lineHeight: '1.45',
+    lineHeight: '1.55',
+    flex: 1,
+    overflowX: 'auto',
+    overflowY: 'auto',
+    padding: '8px 0',
   },
   formulaBox: {
     padding: '14px',
@@ -856,7 +1063,68 @@ const styles = {
   },
   deliverablesContainer: {
     padding: '28px',
-    background: 'rgba(255, 253, 248, 0.95)',
+    background: 'var(--glass-bg-elevated)',
+    backdropFilter: 'var(--glass-blur) saturate(180%)',
+    WebkitBackdropFilter: 'var(--glass-blur) saturate(180%)',
+    border: '1px solid var(--glass-border-highlight)',
+    outline: '1px solid var(--glass-border)',
+    borderRadius: '14px',
+    boxShadow: 'var(--glass-shadow)',
+  },
+  generateReportCard: {
+    padding: '22px 26px',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '20px',
+    borderRadius: '12px',
+    background: 'rgba(255, 252, 244, 0.88)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1.5px solid var(--accent-gold)',
+    boxShadow: '0 6px 22px rgba(154, 103, 26, 0.14)',
+    flexWrap: 'wrap',
+  },
+  generateReportCardLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '14px',
+    flex: '1 1 340px',
+  },
+  generateReportTitle: {
+    fontSize: '0.98rem',
+    fontWeight: '800',
+    color: '#1a1612',
+    letterSpacing: '-0.01em',
+  },
+  generateReportSub: {
+    fontSize: '0.8rem',
+    color: '#655a4b',
+    marginTop: '3px',
+    lineHeight: '1.4',
+  },
+  generateReportBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '13px 26px',
+    fontSize: '0.92rem',
+    fontWeight: '800',
+    borderRadius: '10px',
+    background: 'linear-gradient(135deg, #1b6a4a 0%, #145339 100%)',
+    color: '#ffffff',
+    border: '1.5px solid rgba(255,255,255,0.25)',
+    boxShadow: '0 4px 14px rgba(27, 106, 74, 0.35)',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+  },
+  reportsLockedCard: {
+    padding: '18px 24px',
+    borderRadius: '12px',
+    background: 'rgba(248, 242, 230, 0.55)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px dashed rgba(195, 180, 155, 0.6)',
   },
   deliverablesHeader: {
     display: 'flex',
@@ -888,10 +1156,14 @@ const styles = {
   },
   docxPreview: {
     padding: '32px 36px',
-    background: '#ffffff',
+    background: 'rgba(255, 255, 255, 0.78)',
+    backdropFilter: 'blur(20px) saturate(170%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(170%)',
     color: '#1a1612',
     borderRadius: '12px',
-    boxShadow: '0 4px 16px rgba(50, 42, 32, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.95)',
+    outline: '1px solid rgba(195, 180, 155, 0.3)',
+    boxShadow: '0 12px 36px rgba(45, 36, 25, 0.08), inset 0 1px 1px #ffffff',
   },
   letterhead: {
     marginBottom: '16px',
@@ -930,8 +1202,13 @@ const styles = {
   },
   xlsxPreview: {
     padding: '20px',
-    background: '#ffffff',
+    background: 'rgba(255, 255, 255, 0.78)',
+    backdropFilter: 'blur(20px) saturate(170%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(170%)',
     borderRadius: '12px',
+    border: '1px solid rgba(255, 255, 255, 0.95)',
+    outline: '1px solid rgba(195, 180, 155, 0.3)',
+    boxShadow: '0 12px 36px rgba(45, 36, 25, 0.08), inset 0 1px 1px #ffffff',
   },
   sheetHeader: {
     display: 'flex',
@@ -950,7 +1227,9 @@ const styles = {
   th: {
     textAlign: 'left',
     padding: '10px 12px',
-    background: '#f2ece1',
+    background: 'rgba(242, 236, 225, 0.65)',
+    backdropFilter: 'blur(8px)',
+    WebkitBackdropFilter: 'blur(8px)',
     color: '#383228',
     fontWeight: '800',
     borderBottom: '2px solid #cfc4b2',

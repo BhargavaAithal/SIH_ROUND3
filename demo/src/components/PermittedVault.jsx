@@ -231,10 +231,9 @@ const BASELINE_METADATA = {
   }
 };
 
-export default function PermittedVault({ currentUser, onDocumentIngested, addAuditLog }) {
+export default function PermittedVault({ currentUser, onDocumentIngested, addAuditLog, onProceedToAnalysis }) {
   // Store user-ingested documents keyed by user id so baseline + uploads stay isolated
   const [userUploads, setUserUploads] = useState({});
-  const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [inspectingDoc, setInspectingDoc] = useState(null);
   const [previewModalDoc, setPreviewModalDoc] = useState(null);
@@ -422,14 +421,6 @@ export default function PermittedVault({ currentUser, onDocumentIngested, addAud
     }
 
     setIsProcessing(false);
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    setIsDragging(false);
-    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      processAndIngestFiles(Array.from(e.dataTransfer.files));
-    }
   };
 
   const handleFileInputChange = (e) => {
@@ -635,34 +626,27 @@ export default function PermittedVault({ currentUser, onDocumentIngested, addAud
           >
             {isProcessing ? '⚙️ Ingesting...' : '+ Add Files'}
           </button>
-        </div>
-      </div>
 
-      {/* Compact Drop Target Strip & Local Directory Reference */}
-      <div
-        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-        onDragLeave={() => setIsDragging(false)}
-        onDrop={handleDrop}
-        style={{
-          ...styles.compactDropStrip,
-          borderColor: isDragging ? 'var(--accent-gold)' : 'rgba(195, 180, 155, 0.4)',
-          background: isDragging ? 'rgba(255, 250, 238, 0.95)' : 'rgba(244, 238, 226, 0.5)',
-          transform: isDragging ? 'scale(1.005)' : 'none',
-        }}
-      >
-        <span style={{ fontSize: '0.95rem' }}>
-          {isDragging ? '📂' : '📥'}
-        </span>
-        <span style={{ fontSize: '0.8rem', fontWeight: '700', color: '#4a4135' }}>
-          {isDragging ? 'Release to upload file' : 'Drag & drop files here to add them securely'}
-        </span>
-        <span style={styles.dotDivider}>•</span>
-        <span style={{ fontSize: '0.74rem', color: '#7a7061' }}>
-          Default local folder:
-        </span>
-        <code style={styles.miniCodeTag}>
-          {currentUser.id === 'engineer' ? 'sample_inputs/piping/' : 'sample_inputs/codebase/'}
-        </code>
+          {/* Proceed to Analysis Action Button */}
+          {onProceedToAnalysis && (
+            <button
+              onClick={onProceedToAnalysis}
+              className="btn-glass btn-primary-bold"
+              style={{
+                fontSize: '0.82rem',
+                padding: '7px 18px',
+                cursor: 'pointer',
+                background: currentUploads.length > 0 ? 'var(--accent-gold)' : '#ffffff',
+                color: currentUploads.length > 0 ? '#ffffff' : '#1a1612',
+                border: currentUploads.length > 0 ? '1.5px solid #b45309' : '1px solid #c5baa8',
+                boxShadow: currentUploads.length > 0 ? '0 2px 10px rgba(154, 103, 26, 0.35)' : '0 1px 3px rgba(0,0,0,0.06)',
+              }}
+              title="Proceed to active scenario analysis"
+            >
+              ⚡ Proceed to Analysis ➔
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Main Two-Column Engineering Layout: Left Rail + Documents Table */}
@@ -1451,7 +1435,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: '12px',
-    marginBottom: '10px',
+    marginBottom: '18px',
     flexWrap: 'wrap',
   },
   searchBoxWrapper: {
@@ -1503,7 +1487,9 @@ const styles = {
     padding: '5px 8px',
     borderRadius: '6px',
     border: '1px solid rgba(195, 180, 155, 0.6)',
-    background: '#ffffff',
+    background: 'rgba(255, 255, 255, 0.65)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
     color: '#1a1612',
     fontFamily: 'var(--font-body)',
     fontWeight: '600',
@@ -1527,35 +1513,6 @@ const styles = {
     cursor: 'pointer',
   },
 
-  // Compact Drag & Drop Strip
-  compactDropStrip: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '8px',
-    padding: '8px 16px',
-    borderRadius: '8px',
-    border: '1.5px dashed rgba(195, 180, 155, 0.5)',
-    marginBottom: '20px',
-    transition: 'all 0.2s ease',
-    cursor: 'pointer',
-  },
-  dotDivider: {
-    color: '#b0a595',
-    fontWeight: '900',
-    fontSize: '0.8rem',
-  },
-  miniCodeTag: {
-    fontFamily: 'var(--font-mono)',
-    fontSize: '0.72rem',
-    fontWeight: '700',
-    color: '#8b4513',
-    background: '#ffffff',
-    padding: '1px 6px',
-    borderRadius: '4px',
-    border: '1px solid rgba(180, 165, 140, 0.4)',
-  },
-
   // Results Bar
   resultsBar: {
     display: 'flex',
@@ -1568,10 +1525,13 @@ const styles = {
   whyMountedPopover: {
     position: 'absolute',
     zIndex: 100,
-    background: 'rgba(255, 253, 248, 0.98)',
-    border: '1px solid var(--accent-cipher)',
-    boxShadow: '0 8px 24px rgba(35, 84, 130, 0.15)',
-    borderRadius: '8px',
+    background: 'rgba(254, 251, 245, 0.90)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.95)',
+    outline: '1px solid var(--accent-cipher)',
+    boxShadow: '0 12px 32px rgba(35, 84, 130, 0.18)',
+    borderRadius: '10px',
     padding: '12px 14px',
     width: '320px',
     marginTop: '6px',
@@ -1634,9 +1594,13 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '10px',
-    background: 'rgba(255, 252, 244, 0.98)',
-    border: '1px solid var(--accent-cipher)',
-    boxShadow: '0 8px 30px rgba(35, 84, 130, 0.2)',
+    background: 'rgba(254, 251, 245, 0.90)',
+    backdropFilter: 'blur(20px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.95)',
+    outline: '1px solid var(--accent-cipher)',
+    boxShadow: '0 12px 36px rgba(35, 84, 130, 0.22)',
+    borderRadius: '10px',
     animation: 'fadeIn 0.2s ease-out',
   },
 
@@ -1644,9 +1608,9 @@ const styles = {
   modalBackdrop: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(25, 20, 15, 0.5)',
-    backdropFilter: 'blur(6px)',
-    WebkitBackdropFilter: 'blur(6px)',
+    background: 'rgba(25, 20, 15, 0.45)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
     zIndex: 1100,
     display: 'flex',
     alignItems: 'center',
@@ -1659,10 +1623,14 @@ const styles = {
     maxHeight: '88vh',
     display: 'flex',
     flexDirection: 'column',
-    background: 'rgba(255, 253, 248, 0.98)',
-    borderRadius: '12px',
+    background: 'rgba(254, 251, 245, 0.88)',
+    backdropFilter: 'blur(28px) saturate(180%)',
+    WebkitBackdropFilter: 'blur(28px) saturate(180%)',
+    border: '1px solid rgba(255, 255, 255, 0.95)',
+    outline: '1px solid rgba(195, 180, 155, 0.4)',
+    borderRadius: '14px',
     overflow: 'hidden',
-    boxShadow: '0 16px 50px rgba(30, 24, 18, 0.3)',
+    boxShadow: '0 24px 60px rgba(30, 24, 18, 0.25), inset 0 1px 1px #ffffff',
   },
   modalHeader: {
     padding: '16px 20px',
@@ -1670,6 +1638,8 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center',
     borderBottom: '1px solid var(--glass-border)',
-    background: 'rgba(246, 240, 230, 0.8)',
+    background: 'rgba(246, 240, 230, 0.65)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
   }
 };

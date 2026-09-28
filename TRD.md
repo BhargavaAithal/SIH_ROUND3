@@ -489,3 +489,192 @@ Local File System (sample_inputs/) ➔ Native File Picker / Drag-and-Drop ➔ In
 * **Zero WAN Egress Policy**: Ingestion processes execute purely locally within memory buffers with strictly zero external network packets.
 * **Manual Ingestion Protocol**: Eliminates simulated/hardcoded mock data in the presentation tier. Operators explicitly feed authentic datasets from `sample_inputs/piping/` (CML ultrasonic surveys, line lists) or `sample_inputs/codebase/` (engineering patches, pytest test suites) via file selection or OS drag-and-drop.
 * **Audit Chaining**: Every manual file ingestion automatically appends a typed audit record (`[USER] Manually ingested input file: <filename>`) linked to a platform Merkle leaf confirmation (`[PLATFORM] SHA-256 Merkle leaf registered and sealed into vault`).
+
+---
+
+### 11. Engineering Code Lab UI Architecture & State Machine
+
+#### 11.1 Layout Primitive Specification
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ TOP OPERATIONAL BAR (Breadcrumb + Target + Air-Gap Badges + Actions)   │
+├─────────────────┬─────────────────────────────────┬────────────────────┤
+│ REPOSITORY      │ CODE / DIFF EDITOR              │ AI ENGINEER        │
+│ [Explorer/      │ Header: Lang, Version, Status   │ Header & Status    │
+│  Changes/       │ Body: Monospace, Gutter, Diff   │ Tabs: Diagnose,    │
+│  History]       │ Footer: Problems, Quick Actions │   Evidence, Patch, │
+│ Sandbox Card    │                                 │   Verify           │
+│                 │                                 │ Fixed Action Bar   │
+├─────────────────┴─────────────────────────────────┴────────────────────┤
+│ VERIFICATION PIPELINE (AST ✓ → Sandbox ✓ → Tests ✓ → Domain ✓ → SMT ✓) │
+├────────────────────────────────────────────────────────────────────────┤
+│ EXECUTION CONSOLE (Collapsible, 160-220px, Stdout / Traceback / Matrix)│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+#### 11.2 State Machine Transition Matrix
+| Current State | Trigger Event | Next State | Primary Action Button | UI Focus |
+| :--- | :--- | :--- | :--- | :--- |
+| `READY` | User clicks Run | `RUNNING_TEST` | `[ ⚙️ Running Tests... ]` | Console execution logs |
+| `RUNNING_TEST` | Tests fail (exit != 0) | `FAILED` | `[ 🔍 Diagnose Failure ]` | AI Panel: Diagnose Tab |
+| `FAILED` | Click Diagnose | `DIAGNOSING` | `[ ⚡ Review Diff ]` | AI Panel: Patch Tab |
+| `DIAGNOSING` | Click Review Diff | `PATCH_PROPOSED`| `[ ⚡ Apply Patch ]` | Editor: Inline Diff |
+| `PATCH_PROPOSED`| Click Apply Patch| `APPLYING_PATCH`| `[ ⚙️ Applying... ]` | Editor updates to patch |
+| `APPLYING_PATCH`| Patch completes | `PATCH_APPLIED` | `[ ⚡ Verify Patch ]` | Repository: Modified ● |
+| `PATCH_APPLIED` | Click Verify Patch| `VERIFYING` | `[ ⚙️ Verifying... ]` | Console execution logs |
+| `VERIFYING` | 9/9 Tests Pass | `PASSED` | `[ 🚀 Deploy Capability ]`| Pipeline: Commit Ready ✓ |
+| `PASSED` | Click Deploy | `DEPLOYED` | `[ ✓ Capability Deployed ]`| Deliverables & Seals |
+
+#### 11.3 Epistemic Separation Contract
+- **Model Signal ($\beta$)**: Probabilistic extraction confidence (e.g. `98.4%`), displayed strictly in diagnostic evidence tabs.
+- **Deterministic Assurance ($\alpha$)**: Formal Boolean verification (`PASS` / `FAIL`), AST check, and exit codes dominating the primary visual hierarchy.
+
+---
+
+### 12. Interactive Code Authoring Subsystem
+
+#### 12.1 Interactive Editor Contract
+```typescript
+interface EditorBuffer {
+  filePath: string;
+  language: string;
+  originalContent: string;
+  currentContent: string;
+  isDirty: boolean;
+  cursorPosition: { line: number; column: number };
+  diagnosticProblems: DiagnosticItem[];
+  mode: 'EDIT' | 'DIFF' | 'COMPARE';
+  lastSavedAt: string | null;
+}
+
+interface DiagnosticItem {
+  line: number;
+  severity: 'ERROR' | 'WARNING' | 'INFO';
+  message: string;
+  ruleId: string;
+}
+```
+* **Buffer State Reconciler**: Maintains original vs. working vs. patched copy states. Changes trigger incremental AST linting in an isolated Web Worker without UI frame drops.
+* **Direct Authoring Invariants**: Full text editing with Tab indentation handling, line number recalculation, hotkey binding (`Ctrl+S`), dirty buffer tracking, and instant problem reconciliation.
+
+---
+
+### 13. Workspace Resolution & Multi-Root Isolation Subsystem
+
+#### 13.1 Workspace Specification Schema
+```typescript
+interface WorkspaceConfig {
+  workspaceId: string;
+  rootPath: string;
+  name: string;
+  description: string;
+  type: 'LOCAL_DIRECTORY' | 'ENCLAVE_SANDBOX' | 'REPO_ROOT';
+  activeProfile: '24GB' | '48GB' | 'MULTI_GPU';
+  sandboxes: {
+    memoryLimitMb: number;
+    cpuQuotaMs: number;
+    networkEgress: 'NONE';
+  };
+  installedSkills: string[];
+}
+```
+* **Strict Boundary Sandboxing**: Path resolution asserts all file accesses are children of `workspace.rootPath`. Symlinks or path traversals (`..`) escaping root raise a `SovereignBoundaryViolation`.
+
+---
+
+### 14. Offline Extensions & Skills Substrate (`.agents/skills/`)
+
+#### 14.1 Offline Skill Manifest Schema (`SKILL.md`)
+```yaml
+---
+name: string                   # Unique identifier (e.g., "ast-guard", "z3-smt-verifier")
+description: string            # Human-readable summary of capability
+version: string                # Semantic version
+statutory_tier: string         # "CRITICAL_SAFETY" | "SECURITY_ENFORCER" | "TOOLING"
+capabilities: string[]         # Exposed tools/commands
+offline_enclave_sha256: string # Package integrity digest
+permissions:
+  ast_inspection: boolean
+  file_read: boolean
+  file_write: boolean
+  network_egress: false       # Invariant: ALWAYS false
+---
+```
+* **Offline Repository Resolution**: Resolves skills from workspace `.agents/skills/` and enclave offline cache. Manual import accepts signed `.agyskill` archives and unpacks them locally with SHA-256 verification.
+
+---
+
+### 15. Asynchronous Multi-Agent Background Worker Substrate
+
+#### 15.1 Background Subagent Lifecycle & Task Pool
+```typescript
+interface BackgroundSubagentTask {
+  taskId: string;               # Unique task identifier (e.g., "task-ast-01")
+  agentName: string;            # Subagent title (e.g., "AST Security Auditor")
+  persona: 'SECURITY' | 'VERIFIER' | 'REFACTOR' | 'COMPLIANCE' | 'SOLVER';
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'PAUSED';
+  progressPct: number;          # 0 to 100
+  startTime: string;
+  durationMs: number;
+  cpuQuotaMs: number;
+  memoryUsedMb: number;
+  activeStep: string;
+  logs: string[];
+  proposedDiff?: {
+    targetFile: string;
+    patch: string;
+    summary: string;
+  };
+}
+```
+* **Asynchronous Scheduling Loop**: Background agents execute concurrently via a non-blocking Web Worker pool or asynchronous Tokio tasks, streaming discrete state updates back to the UI state machine.
+* **Differential Merge Gate**: When a background agent proposes a patch or fix, it yields a unified diff that the operator can inspect and merge directly into the active editor buffer with 1-click non-destructive reconciliation.
+
+---
+
+### 16. Sovereign Glassmorphism Design System Specification
+
+#### 16.1 Design Tokens & Mathematical Optics
+The SMITRACE Sovereign AI Workbench enforces a strict optical physics model based on ambient light mesh scattering, translucent refractions, and specular perimeter reflections:
+
+```css
+:root {
+  /* Ambient Glass Surfaces */
+  --glass-bg: rgba(255, 252, 244, 0.72);
+  --glass-bg-elevated: rgba(255, 253, 248, 0.85);
+  --glass-bg-inset: rgba(246, 240, 230, 0.55);
+  --glass-bg-hover: rgba(255, 255, 255, 0.90);
+  
+  /* Specular Highlight Boundaries */
+  --glass-border: rgba(200, 185, 160, 0.55);
+  --glass-border-strong: rgba(180, 160, 130, 0.80);
+  --glass-border-highlight: rgba(255, 255, 255, 0.85);
+  
+  /* Optical Refraction Blurs */
+  --glass-blur: blur(18px) saturate(180%);
+  --glass-blur-lg: blur(28px) saturate(190%);
+  
+  /* Multi-Layer Specular Shadows */
+  --glass-shadow-sm: 0 4px 16px rgba(45, 35, 20, 0.05), inset 0 1px 1px #ffffff;
+  --glass-shadow: 0 12px 36px rgba(40, 30, 18, 0.08), inset 0 1px 2px #ffffff;
+  --glass-shadow-lg: 0 24px 60px rgba(35, 25, 15, 0.14), inset 0 1px 2px #ffffff;
+}
+```
+
+#### 16.2 Surface Classification Matrix
+
+| Surface Class | Primary Selector | Background / Optics | Specular Edge & Shadows | Target Elements |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ambient Mesh** | `body` | Multi-point champagne / gold radial gradient stops | N/A (Viewport Root) | Full application backdrop, enables chromatic refraction |
+| **Standard Frosted Pane** | `.glass-card` | `var(--glass-bg)`, `backdrop-filter: var(--glass-blur)` | `1px solid var(--glass-border)`, `var(--glass-shadow)` | Explorer columns, solver cards, toolbars, pipeline strips |
+| **Elevated Glass Card** | `.glass-elevated` | `var(--glass-bg-elevated)`, `backdrop-filter: var(--glass-blur-lg)` | `1.5px solid var(--glass-border-highlight)`, `var(--glass-shadow-lg)` | Auth cards, modal dialogs, status badges, active view switchers |
+| **Smoked Obsidian Glass** | `.glass-obsidian` | `rgba(26, 24, 21, 0.88)`, `backdrop-filter: blur(18px)` | `1px solid rgba(255,255,255,0.12)`, `inset 0 1px 3px rgba(0,0,0,0.5)` | Interactive Code Editor, Audit Terminal Dock, SMT code boxes, logs |
+| **Frosted Alabaster Glass** | `.glass-paper` | `rgba(255, 255, 255, 0.78)`, `backdrop-filter: blur(24px) saturate(160%)` | `1.5px solid rgba(255,255,255,0.9)`, `0 12px 36px rgba(40,30,20,0.08)` | Executive DOCX Memos, multi-tab XLSX audit matrix sheets |
+| **Frosted Control Button** | `.btn-glass` | `rgba(255, 255, 255, 0.62)`, `backdrop-filter: blur(14px) saturate(160%)` | `1px solid var(--glass-border)`, `inset 0 1px 1px #ffffff` | Action controls, secondary triggers, modal buttons, tabs |
+| **Obsidian Bold Trigger** | `.btn-primary-bold` | `linear-gradient(135deg, rgba(26,23,20,0.95), rgba(40,35,30,0.95))` | `1px solid rgba(255,255,255,0.2)`, `0 4px 14px rgba(0,0,0,0.25)` | Primary execution triggers, patch deploy buttons, save buttons |
+
+#### 16.3 Hardware Acceleration & Compositing Invariants
+1. **Zero Opaque Surfaces**: No primary or child container may declare `#ffffff`, `#141210`, or `#faf7f0` solid fills.
+2. **GPU Compositing Isolation**: All glass elements declare `-webkit-backdrop-filter` alongside standard `backdrop-filter` and maintain distinct `z-index` layering to prevent dirty-rect repainting during agent streaming.
+3. **Contrast Accessibility (WCAG 2.1 AA)**: All text rendered against light frosted glass retains `>= 4.5:1` contrast using `#1a1612` (headings) and `#4a4135` (body text); text rendered against Smoked Obsidian Glass retains `>= 7.0:1` contrast using `#ebdcc3` and `#4ade80`.
+

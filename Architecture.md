@@ -549,3 +549,49 @@ Hardware is an external execution constraint dynamically sensed and managed by t
 - **Local Input Suite Integration**: Direct operator file ingestion from designated local directories (`sample_inputs/piping/` and `sample_inputs/codebase/`) alongside baseline pre-mounted statutory documents.
 - **In-Browser Web Crypto SHA-256 Merkle Sealing**: Client-side byte-level hashing (`crypto.subtle.digest`) eliminates simulated presentation mockups while maintaining 100% air-gap compliance with zero WAN egress.
 - **Dual Ingestion Vector**: Provides native OS file browsing dialogs alongside desktop drag-and-drop with real-time audit ledger emission (`[USER] Manually ingested input file: <filename>`).
+
+### 5.10 Engineering Code Lab Coordinated Workspaces & Control Room Architecture (ADR-0018)
+- **Core Layout Primitive**: Coordinates three peer workspaces (`Repository` × `Code / Diff Editor` × `Engineering AI Workspace`) aligned with full-width verification and execution tiers:
+  ```
+  ┌─────────────────┬─────────────────────────────────┬────────────────────┐
+  │ REPOSITORY      │ CODE / DIFF EDITOR              │ AI ENGINEER        │
+  │ [Explorer/      │ 3 Layers: Lang/Version/Status   │ Diagnostic Space   │
+  │  Changes/       │ Monospace Gutter Code Body      │ Fixed Header/Tabs  │
+  │  History]       │ Live Footer (Problems/Actions)  │ Fixed Action Bar   │
+  ├─────────────────┴─────────────────────────────────┴────────────────────┤
+  │ VERIFICATION PIPELINE (AST ✓ → Sandbox ✓ → Tests ✓ → Domain ✓ → SMT ✓) │
+  ├────────────────────────────────────────────────────────────────────────┤
+  │ EXECUTION CONSOLE (Collapsible Full-Width Bottom Strip, Stdout/Matrix) │
+  └────────────────────────────────────────────────────────────────────────┘
+  ```
+- **Density & Viewport Elasticity**: Editor vertical dimension conforms strictly to syntax lines without artificial blank dilation; unused space resolves to system verification state and live execution logs.
+- **State Machine Engine**: Drives deterministic operator progression: `Initial` → `Run Sandbox` → `Failure Detected` → `Diagnose Failure` → `Review Diff` → `Apply Patch` → `Verify Patch` → `Deploy Capability`.
+- **Probabilistic vs Deterministic Epistemic Segregation**: Model Signal ($\beta=98.4\%$) is segregated to evidence analytics; Deterministic Assurance ($\alpha=\text{PASS}$) visually dominates the verification pipeline and deployment authorization gates.
+
+### 5.11 Sovereign Developer Substrate: Interactive Authoring, Workspace Scoping, Offline Extensions & Multi-Agent Fabric (ADR-0019)
+- **Interactive Code Authoring Tier**:
+  - Full interactive code editor with line gutter, dirty buffer tracking, syntax problem counters, Tab indentation, and hot-key save (`Ctrl+S`).
+  - Supports live buffer switching, inline diff inspection, side-by-side comparison, and instantaneous AST security re-verification upon save.
+- **Workspace Scoping & Path Resolution**:
+  - Operators can select or configure active workspace roots (e.g. `smitrace`, `refinery-core-physics`, or arbitrary local directories).
+  - Sandboxed path normalizer prevents path traversal outside the active root, dynamically binding the workspace's file tree, configuration, and project-local `.agents/skills/`.
+- **Air-Gapped Offline Extensions & Skills Substrate**:
+  - Implements a local skill registry adhering to the Claude Code / Antigravity IDE standard (`.agents/skills/<skill_name>/SKILL.md` with YAML frontmatter).
+  - Enables offline browsing, installation, and inspection of cached skills (`ast-guard`, `z3-smt-verifier`, `code-review`, `statutory-linter`, `tdd`, `diagnosing-bugs`) with zero WAN exfiltration.
+  - Supports offline package imports (`.agyskill` / `.tar.gz`) verified via SHA-256 integrity digests.
+- **Asynchronous Multi-Agent Background Worker Fabric**:
+  - Enables operators to dispatch ("throw") multiple concurrent autonomous background agents (e.g. `AST Security Auditor`, `PyTest Regression Runner`, `Z3 SMT Invariant Solver`, `Refactoring Specialist`) while actively coding in the foreground.
+  - Workers run asynchronously in isolated threads/processes, updating live status cards, step logs, CPU time, and memory usage.
+  - Generates unified patch diffs with a 1-click differential merge gate directly into the active editor buffer.
+
+### 5.12 Sovereign Glassmorphic Presentation & Multi-Layer Optical Model (ADR-0020)
+- **Optical Architecture**:
+  - The UI layout abandons flat opaque color blocks in favor of a 5-layer optical composite model:
+    1. **Ambient Lighting Substrate**: A 5-point warm champagne/platinum/gold radial gradient mesh on the root `body`, simulating natural environmental lighting and providing the chromatic variance necessary for backdrop refractions.
+    2. **Tactile Translucent Panes (`.glass-card`, `.glass-elevated`)**: Alpha translucency (`0.65` to `0.85`) combined with `backdrop-filter: blur(18px) saturate(180%)` providing physical depth and separation from underlying canvases.
+    3. **Specular Perimeter Framing**: Inset specular reflection highlights (`inset 0 1px 1px #ffffff`) and subtle boundary outlines (`1px solid var(--glass-border)`) defining clean, sharp visual edges.
+    4. **Smoked Obsidian Developer Enclaves (`.glass-obsidian`)**: Deep charcoal translucent glass (`rgba(26, 24, 21, 0.88)` with `blur(18px)`) specifically reserved for terminal consoles, code buffers, and mathematical SMT proof viewers.
+    5. **Frosted Alabaster Document Sheets (`.glass-paper`)**: Off-white translucent frosted sheets (`rgba(255, 255, 255, 0.78)` with `blur(24px)`) rendering executive deliverables (DOCX memos and XLSX matrices) with tactile materiality.
+- **Hardware-Accelerated Compositing**:
+  - Hardware GPU layers are isolated using `will-change` on dynamic transforms (Audit Terminal Dock slide-up) and discrete stacking contexts to prevent layout thrashing and maintain 60 FPS during background subagent log streaming.
+
